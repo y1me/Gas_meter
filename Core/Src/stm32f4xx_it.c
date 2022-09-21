@@ -51,7 +51,25 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+static PFV_EXTI pf_ext_int[]=
+		{
+				NULL,// 0
+				NULL,
+				NULL,
+				NULL,
+				NULL,//4
+				NULL,
+				NULL,
+				NULL,
+				NULL,
+				NULL,//9
+				NULL,
+				NULL,
+				NULL,
+				NULL,
+				NULL,
+				NULL//15
+		};
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -268,6 +286,17 @@ void EXTI15_10_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_14);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_15);
+
+  if (LL_EXTI_IsActiveFlag_0_31(LL_EXTI_LINE_5) != RESET)
+  {
+    LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_5);
+    /* USER CODE BEGIN LL_EXTI_LINE_5 */
+    if (pf_ext_int[5]  != NULL)
+    		{
+    			(* pf_ext_int[5])();
+    		}
+    /* USER CODE END LL_EXTI_LINE_5 */
+  }
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
 
   /* USER CODE END EXTI15_10_IRQn 1 */
