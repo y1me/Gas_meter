@@ -27,12 +27,19 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "Utils/types.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+ typedef void (* const PFV_EXTI)(void);
 
+ typedef struct
+ {
+    u32 interval;      /* How often to call the task */
+    void (* const proc)(void);	/* pointer to function returning void */
+
+ } TIMED_PERIOD;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -59,6 +66,7 @@ void EXTI2_IRQHandler(void);
 void EXTI3_IRQHandler(void);
 void DMA1_Stream5_IRQHandler(void);
 void DMA1_Stream6_IRQHandler(void);
+void TIM2_IRQHandler(void);
 void EXTI15_10_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
