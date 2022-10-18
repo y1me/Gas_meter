@@ -41,7 +41,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+volatile uint32_t tick_10us = 0, tick_ms = 0, tick_second = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,9 +70,28 @@ static PFV_EXTI pf_ext_int[]=
 				NULL,
 				NULL//15
 		};
+
+static const TIMED_PERIOD timed_task_second[] =
+{
+    { 1,  NULL },
+    { 0, NULL }
+};
+
+static const TIMED_PERIOD timed_task_ms[] =
+{
+    { 4, NULL },
+    { 0, NULL }
+};
+
+static const TIMED_PERIOD timed_task_10us[] =
+{
+    { 10, NULL },
+    { 0, NULL }
+};
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern DMA_HandleTypeDef hdma_adc1;
 extern DMA_HandleTypeDef hdma_i2c1_rx;
 extern DMA_HandleTypeDef hdma_i2c1_tx;
 extern TIM_HandleTypeDef htim2;
@@ -207,7 +226,36 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
+	tick_ms++;
 
+	if (tick_ms == 1000)
+	{
+		tick_ms = 0;
+		tick_second++;
+
+		for (const TIMED_PERIOD *ptr = timed_task_second; ptr->interval != 0; ptr++)
+		{
+			if (!(tick_second % ptr->interval))
+			{
+				/* Time to call the function */
+				(ptr->proc)();
+			}
+		}
+	}
+
+	if (tick_second == 60)
+	{
+		tick_second = 0;
+	}
+
+	for (const TIMED_PERIOD *ptr = timed_task_ms; ptr->interval != 0; ptr++)
+	{
+		if (!(tick_ms % ptr->interval))
+		{
+			/* Time to call the function */
+			(ptr->proc)();
+		}
+	}
   /* USER CODE END SysTick_IRQn 1 */
 }
 
@@ -296,7 +344,21 @@ void TIM2_IRQHandler(void)
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
   /* USER CODE BEGIN TIM2_IRQn 1 */
+  tick_10us++;
 
+    if (tick_10us == 100)
+    {
+  	  tick_10us = 0;
+    }
+
+    for (const TIMED_PERIOD *ptr = timed_task_10us; ptr->interval != 0; ptr++)
+    {
+  	  if (!(tick_10us % ptr->interval))
+  	  {
+  		  /* Time to call the function */
+  		  (ptr->proc)();
+  	  }
+    }
   /* USER CODE END TIM2_IRQn 1 */
 }
 
@@ -346,6 +408,20 @@ void EXTI15_10_IRQHandler(void)
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
 
   /* USER CODE END EXTI15_10_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream0 global interrupt.
+  */
+void DMA2_Stream0_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream0_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_adc1);
+  /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream0_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
