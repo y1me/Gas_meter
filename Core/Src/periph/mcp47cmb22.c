@@ -15,7 +15,7 @@
  */
 
 /**
- * @ingroup     drivers_ads101x
+ * @ingroup     drivers_mcp47cXbXX
  * @{
  *
  * @file
@@ -29,9 +29,9 @@
 #include "assert.h"
 
 
-#include "periph/ads101x.h"
-#include "periph/ads101x_params.h"
-#include "periph/ads101x_regs.h"
+#include "periph/mcp47cXbXX.h"
+#include "periph/mcp47cXbXX_params.h"
+#include "periph/mcp47cXbXX_regs.h"
 
 #include "i2c.h"
 #include "Utils/Commons.h"
@@ -44,51 +44,53 @@
 //#define DEV (dev->params.i2c)
 //#define ADDR (dev->params.addr)
 
-int16_t ads101x_init( ads101x_params_t *,  ads101x_data_t *);
-int16_t ads101x_init_low_limit( ads101x_params_t *,  ads101x_data_t *);
-int16_t ads101x_init_high_limit( ads101x_params_t *,  ads101x_data_t *);
-//int16_t ads101x_rotate_mux_gain(ads101x_params_t *, ads101x_data_t *);
-int16_t ads101x_read_raw( ads101x_params_t *, ads101x_data_t *);
+int16_t mcp47cXbXX_init( mcp47cXbXX_params_t *,  mcp47cXbXX_data_t *);
+int16_t mcp47cXbXX_init_low_limit( mcp47cXbXX_params_t *,  mcp47cXbXX_data_t *);
+int16_t mcp47cXbXX_init_high_limit( mcp47cXbXX_params_t *,  mcp47cXbXX_data_t *);
+//int16_t mcp47cXbXX_rotate_mux_gain(mcp47cXbXX_params_t *, mcp47cXbXX_data_t *);
+int16_t mcp47cXbXX_read_raw( mcp47cXbXX_params_t *, mcp47cXbXX_data_t *);
 
 
-void ADS115_StateMachine_Iteration(ads101x_params_t *, ads101x_data_t *);
+void ADS115_StateMachine_Iteration(mcp47cXbXX_params_t *, mcp47cXbXX_data_t *);
 /* USER CODE END Private Prototypes */
 
 typedef struct {
     const char * name;
-    int16_t (* const func)(ads101x_params_t *, ads101x_data_t *);
+    int16_t (* const func)(mcp47cXbXX_params_t *, mcp47cXbXX_data_t *);
 } stateFunctionRow_t;
 
 static stateFunctionRow_t ADS1114_stateFunction[] = {
         // NAME         // FUNC
-	{ "ST_MCP47_INIT",		ads101x_init },
-	{ "ST_MCP47_SET_VREF",	ads101x_init_low_limit },
-	{ "ST_MCP47_SET_PDOWN",	ads101x_init_high_limit },
+	{ "ST_MCP47_RESET",		mcp47cXbXX_init_low_limit },
+	{ "ST_MCP47_SET_VREF",	mcp47cXbXX_init_low_limit },
+	{ "ST_MCP47_SET_PDOWN",	mcp47cXbXX_init_high_limit },
 	{ "ST_MCP47_SET_GAIN",	NULL },
-    { "ST_MCP47_SET_DAC0",	ads101x_read_raw },
+    { "ST_MCP47_SET_DAC0",	mcp47cXbXX_read_raw },
 	{ "ST_MCP47_SET_DAC1",	NULL },
-    { "ST_MCP47_ERROR",		ads101x_init }
+	{ "ST_MCP47_IDLE",		NULL },
+    { "ST_MCP47_ERROR",		mcp47cXbXX_init }
 };
 
 typedef struct {
-	state_ads1114_t currState;
-    event_ads1114_t event;
-    state_ads1114_t nextState;
+	state_mcp47_t currState;
+    event_mcp47_t event;
+    state_mcp47_t nextState;
 } stateTransMatrixRow_t;
 
 static stateTransMatrixRow_t ADS1114_stateTransMatrix[] = {
     // CURR STATE  v// EVENT           // NEXT STATE
-    { ST_ADS1114_INIT,			EV_ADS1114_INIT_DONE,			ST_ADS1114_LOW_LIMIT  },
-	{ ST_ADS1114_LOW_LIMIT,		EV_ADS1114_LOW_LIMIT_DONE,		ST_ADS1114_HIGH_LIMIT  },
-	{ ST_ADS1114_HIGH_LIMIT,	EV_ADS1114_HIGH_LIMIT_DONE,		ST_ADS1114_WAIT_CONV  },
-    { ST_ADS1114_WAIT_CONV,		EV_ADS1114_CONV_RDY,			ST_ADS1114_CONV },
-    { ST_ADS1114_CONV,			EV_ADS1114_CONV_DONE,			ST_ADS1114_WAIT_CONV },
-    { ST_ADS1114_INIT,  		EV_ADS1114_DO_INIT,				ST_ADS1114_INIT  },
-    { ST_ADS1114_INIT,			EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT  },
-    { ST_ADS1114_LOW_LIMIT,		EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT  },
-    { ST_ADS1114_HIGH_LIMIT,	EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT  },
-    { ST_ADS1114_WAIT_CONV,		EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT },
-    { ST_ADS1114_CONV,			EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT }
+    { ST_MCP47_RESET,			EV_MCP47_RESET_DONE,		ST_MCP47_IDLE  },
+	{ ST_MCP47_SET_VREF,		EV_MCP47_VREF_DONE,			ST_MCP47_IDLE  },
+	{ ST_MCP47_SET_PDOWN,		EV_MCP47_PDOWN_DONE,		ST_MCP47_IDLE  },
+    { ST_MCP47_SET_GAIN,		EV_MCP47_GAIN_DONE,			ST_MCP47_IDLE },
+    { ST_MCP47_SET_DAC0,		EV_MCP47_DAC0_DONE,			ST_MCP47_IDLE },
+    { ST_MCP47_SET_DAC1,  		EV_MCP47_DAC1_DONE,			ST_MCP47_IDLE  },
+    { ST_MCP47_RESET,			EV_MCP47_ERROR_OCCUR,		ST_MCP47_IDLE  },
+	{ ST_MCP47_SET_VREF,		EV_MCP47_ERROR_OCCUR,		ST_MCP47_IDLE  },
+	{ ST_MCP47_SET_PDOWN,		EV_MCP47_ERROR_OCCUR,		ST_MCP47_IDLE  },
+    { ST_MCP47_SET_GAIN,		EV_MCP47_ERROR_OCCUR,		ST_MCP47_IDLE },
+    { ST_MCP47_SET_DAC0,		EV_MCP47_ERROR_OCCUR,		ST_MCP47_IDLE },
+    { ST_MCP47_SET_DAC1,  		EV_MCP47_ERROR_OCCUR,		ST_MCP47_IDLE  }
 };
 
 /* Buffer used for transmission */
@@ -97,9 +99,9 @@ uint8_t aTxBuffer[ADS101X_BUFFER_SIZE];
 /* Buffer used for reception */
 uint8_t aRxBuffer[ADS101X_BUFFER_SIZE];
 
-ads101x_data_t config_data;
+mcp47cXbXX_data_t config_data;
 
-int16_t ads101x_init(ads101x_params_t *params, ads101x_data_t *data)
+int16_t mcp47cXbXX_reset(mcp47cXbXX_params_t *params)
 {
 	int16_t ret;
 	uint8_t data_init[3] = ADS101X_INIT_PARAMS;
@@ -131,7 +133,7 @@ int16_t ads101x_init(ads101x_params_t *params, ads101x_data_t *data)
 }
 
 
-int16_t ads101x_init_low_limit(ads101x_params_t *params, ads101x_data_t *data)
+int16_t mcp47cXbXX_set_vref(mcp47cXbXX_params_t *params)
 {
 	int16_t ret;
 	uint8_t data_init[3] = {ADS101X_LOW_LIMIT_ADDR,
@@ -163,7 +165,100 @@ int16_t ads101x_init_low_limit(ads101x_params_t *params, ads101x_data_t *data)
 
 }
 
-int16_t ads101x_init_high_limit(ads101x_params_t *params, ads101x_data_t *data)
+int16_t mcp47cXbXX_set_gain(mcp47cXbXX_params_t *params)
+{
+	int16_t ret;
+	uint8_t data_init[3] = {ADS101X_HIGH_LIMIT_ADDR,
+							0x80,
+							0x00 };
+	if (I2C_status() != I2C_FREE)
+	{
+		ret = ADS101X_I2CBUSY;
+		goto out;
+	}
+	data->pointer = data_init[0];
+	data->config[0] = data_init[1];
+	data->config[1] = data_init[2];
+
+	ret = write_read_I2C_device_DMA(params->i2cHandle, params->addr, &data->pointer, data->config, 3, 2);
+	if (ret == I2C_OK)
+	{
+		params->currState=ST_ADS1114_HIGH_LIMIT;
+		params->event=EV_ADS1114_NONE;
+	}
+	else
+	{
+		params->currState=ST_ADS1114_LOW_LIMIT;
+		params->event=EV_ADS1114_LOW_LIMIT_DONE;
+	}
+	out :
+	return ret;
+
+}
+
+int16_t mcp47cXbXX_set_powerdown(mcp47cXbXX_params_t *params)
+{
+	int16_t ret;
+	uint8_t data_init[3] = {ADS101X_HIGH_LIMIT_ADDR,
+							0x80,
+							0x00 };
+	if (I2C_status() != I2C_FREE)
+	{
+		ret = ADS101X_I2CBUSY;
+		goto out;
+	}
+	data->pointer = data_init[0];
+	data->config[0] = data_init[1];
+	data->config[1] = data_init[2];
+
+	ret = write_read_I2C_device_DMA(params->i2cHandle, params->addr, &data->pointer, data->config, 3, 2);
+	if (ret == I2C_OK)
+	{
+		params->currState=ST_ADS1114_HIGH_LIMIT;
+		params->event=EV_ADS1114_NONE;
+	}
+	else
+	{
+		params->currState=ST_ADS1114_LOW_LIMIT;
+		params->event=EV_ADS1114_LOW_LIMIT_DONE;
+	}
+	out :
+	return ret;
+
+}
+
+int16_t mcp47cXbXX_set_dac0(mcp47cXbXX_params_t *params)
+{
+	int16_t ret;
+	uint8_t data_init[3] = {ADS101X_HIGH_LIMIT_ADDR,
+							0x80,
+							0x00 };
+	if (I2C_status() != I2C_FREE)
+	{
+		ret = ADS101X_I2CBUSY;
+		goto out;
+	}
+	data->pointer = data_init[0];
+	data->config[0] = data_init[1];
+	data->config[1] = data_init[2];
+
+	ret = write_read_I2C_device_DMA(params->i2cHandle, params->addr, &data->pointer, data->config, 3, 2);
+	if (ret == I2C_OK)
+	{
+		params->currState=ST_ADS1114_HIGH_LIMIT;
+		params->event=EV_ADS1114_NONE;
+	}
+	else
+	{
+		params->currState=ST_ADS1114_LOW_LIMIT;
+		params->event=EV_ADS1114_LOW_LIMIT_DONE;
+	}
+	out :
+	return ret;
+
+}
+
+int16_t mcp47cXbXX_set_dac1(mcp47cXbXX_params_t *params)
 {
 	int16_t ret;
 	uint8_t data_init[3] = {ADS101X_HIGH_LIMIT_ADDR,
@@ -199,16 +294,16 @@ void conv_ready(void)
 	static int16_t count;
 	if (count > 1)
 	{
-		if (ads101x_params->currState == ST_ADS1114_WAIT_CONV && ads101x_params->event != EV_ADS1114_CONV_RDY)
+		if (mcp47cXbXX_params->currState == ST_ADS1114_WAIT_CONV && mcp47cXbXX_params->event != EV_ADS1114_CONV_RDY)
 		{
-			ads101x_params->event = EV_ADS1114_CONV_RDY;
+			mcp47cXbXX_params->event = EV_ADS1114_CONV_RDY;
 		}
 		count = 0;
 	}
 	count++;
 }
 
-int16_t ads101x_read_raw( ads101x_params_t *params, ads101x_data_t *data)
+int16_t mcp47cXbXX_read_raw( mcp47cXbXX_params_t *params, mcp47cXbXX_data_t *data)
 {
 	int16_t ret;
 	data->pointer = ADS101X_CONV_RES_ADDR;
@@ -235,8 +330,8 @@ int16_t ads101x_read_raw( ads101x_params_t *params, ads101x_data_t *data)
 	return ret;
 }
 
-int16_t ads101x_enable_alert(ads101x_alert_t *dev,
-                         ads101x_alert_cb_t cb, void *arg)
+int16_t mcp47cXbXX_enable_alert(mcp47cXbXX_alert_t *dev,
+                         mcp47cXbXX_alert_cb_t cb, void *arg)
 {
 	/*
     uint8_t regs[2];
@@ -266,7 +361,7 @@ int16_t ads101x_enable_alert(ads101x_alert_t *dev,
     return ADS101X_OK;
 }
 
-int16_t ads101x_set_alert_parameters(const ads101x_alert_t *dev,
+int16_t mcp47cXbXX_set_alert_parameters(const mcp47cXbXX_alert_t *dev,
                                  int16_t low_limit, int16_t high_limit)
 {
 	/*
@@ -311,10 +406,10 @@ int16_t ads101x_set_alert_parameters(const ads101x_alert_t *dev,
 
 void Running_ADS115_StateMachine_Iteration(void)
 {
-	ADS115_StateMachine_Iteration(ads101x_params,&config_data);
+	ADS115_StateMachine_Iteration(mcp47cXbXX_params,&config_data);
 }
 
-void ADS115_StateMachine_Iteration(ads101x_params_t *params, ads101x_data_t *data)
+void ADS115_StateMachine_Iteration(mcp47cXbXX_params_t *params, mcp47cXbXX_data_t *data)
 {
 	if (I2C_status() == I2C_OK && params->event == EV_ADS1114_NONE)
 	{

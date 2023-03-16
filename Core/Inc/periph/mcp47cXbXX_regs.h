@@ -87,11 +87,22 @@ extern "C" {
  *
  * @{
  */
+#define MCP47CXBXX_CONF_GAIN_MASK_0		((0xFC3F))
+#define MCP47CXBXX_CONF_GAIN_MASK_1		((1 << 8))
+#define MCP47CXBXX_CONF_GAIN_0_1X		((0 << 8))
+#define MCP47CXBXX_CONF_GAIN_1_1X		((0 << 9))
+#define MCP47CXBXX_CONF_GAIN_0_2X		((1 << 8))
+#define MCP47CXBXX_CONF_GAIN_1_2X		((1 << 9))
 
-#define MCP47CXBXX_CONF_GAIN_0        ((1 << 0))
-#define MCP47CXBXX_CONF_GAIN_1        ((1 << 1))
-
-
+/**
+ * @name    MCP47CXBXX DAC settings
+ *
+ * DAC initial value
+ *
+ * @{
+ */
+#define MCP47CXBXX_CONF_DAC_0		((0x000))
+#define MCP47CXBXX_CONF_DAC_1		((0x000))
 
 
 #ifdef __cplusplus
