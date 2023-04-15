@@ -96,7 +96,7 @@ uint8_t aTxBuffer[ADS101X_BUFFER_SIZE];
 /* Buffer used for reception */
 uint8_t aRxBuffer[ADS101X_BUFFER_SIZE];
 
-ads101x_data_t config_data;
+ads101x_data_t ADS1114_config_data;
 
 int16_t ads101x_init(ads101x_params_t *params, ads101x_data_t *data)
 {
@@ -248,14 +248,14 @@ int16_t ads101x_enable_alert(ads101x_alert_t *dev,
 	/*
     i2c_acquire(DEV);
     i2c_read_regs(DEV, ADDR, ADS101X_CONF_ADDR, &regs, 2, 0x0);
-
+	*/
     /* Enable alert comparator */
 	/*
     regs[1] &= ~ADS101X_CONF_COMP_DIS;
     i2c_write_regs(DEV, ADDR, ADS101X_CONF_ADDR, &regs, 2, 0x0);
 
     i2c_release(DEV);
-
+	*/
     /* Enable interrupt */
 	/*
     dev->arg = arg;
@@ -310,7 +310,7 @@ int16_t ads101x_set_alert_parameters(const ads101x_alert_t *dev,
 
 void Running_ADS115_StateMachine_Iteration(void)
 {
-	ADS115_StateMachine_Iteration(ads101x_params,&config_data);
+	ADS115_StateMachine_Iteration(ads101x_params,&ADS1114_config_data);
 }
 
 void ADS115_StateMachine_Iteration(ads101x_params_t *params, ads101x_data_t *data)

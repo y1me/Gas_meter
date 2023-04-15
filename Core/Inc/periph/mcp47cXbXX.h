@@ -112,6 +112,7 @@ typedef enum {
 	EV_MCP47_GAIN_DONE,
 	EV_MCP47_DAC0_DONE,
 	EV_MCP47_DAC1_DONE,
+	EV_MCP47_NONE,
 	EV_MCP47_ERROR_OCCUR
 } event_mcp47_t;
 
@@ -129,9 +130,18 @@ enum {
 };
 
 /**
+ * @brief   MCP47CXBXX input data
+ */
+typedef struct mcp47cXbXX_data {
+	uint8_t pointer;					/**< data pointer register */
+	uint8_t config[2];					/**< data from/to config register */
+
+} mcp47cXbXX_data_t;
+
+/**
  * @brief   MCP47CXBXX params
  */
-typedef struct MCP47CXBXX_params {
+typedef struct mcp47cXbXX_params {
 	I2C_HandleTypeDef* i2cHandle;		/**< i2c device */
     uint8_t addr;						/**< i2c address */
     uint16_t gain;					/**< Mux and gain boolean settings */
@@ -141,17 +151,17 @@ typedef struct MCP47CXBXX_params {
     uint16_t dac1;					/**< Mux and gain boolean settings */
 	state_mcp47_t currState;
 	event_mcp47_t event;
-} MCP47CXBXX_params_t;
+} mcp47cXbXX_params_t;
 
 /**
  * @brief   MCP47CXBXX device descriptor
  */
-typedef struct MCP47CXBXX {
-    MCP47CXBXX_params_t params;    		/**< device driver configuration */
-} MCP47CXBXX_t;
+typedef struct mcp47cXbXX {
+	mcp47cXbXX_params_t params;    		/**< device driver configuration */
+} mcp47cXbXX_t;
 
 
-void Running_MCP47_StateMachine_Iteration(void);
+void Running_MCP47CXBXX_StateMachine_Iteration(void);
 
 #ifdef __cplusplus
 }

@@ -21,8 +21,8 @@
 #ifndef MCP47CXBXX_PARAMS_H
 #define MCP47CXBXX_PARAMS_H
 
-#include "MCP47CXBXX.h"
-#include "MCP47CXBXX_regs.h"
+#include "mcp47cXbXX.h"
+#include "mcp47cXbXX_regs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,7 +69,7 @@ extern "C" {
 /**
  * @brief   MCP47CXBXX/111x defaults if not defined for a board or application
  */
-static MCP47CXBXX_params_t MCP47CXBXX_params[] =
+static mcp47cXbXX_params_t mcp47cXbXX_params[] =
 {
     MCP47CXBXX_PARAMS
 };
