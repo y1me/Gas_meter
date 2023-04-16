@@ -59,7 +59,7 @@ void MX_GPIO_Init(void)
   /**/
   GPIO_InitStruct.Pin = LL_GPIO_PIN_0;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
-  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -184,16 +184,21 @@ void MX_GPIO_Init(void)
   /**/
   LL_GPIO_SetPinMode(GPIOB, LL_GPIO_PIN_3, LL_GPIO_MODE_INPUT);
 
-  /* EXTI interrupt init*/
-  NVIC_SetPriority(EXTI2_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
-  NVIC_EnableIRQ(EXTI2_IRQn);
-  NVIC_SetPriority(EXTI3_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
-  NVIC_EnableIRQ(EXTI3_IRQn);
-  NVIC_SetPriority(EXTI15_10_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
-  NVIC_EnableIRQ(EXTI15_10_IRQn);
-
 }
 
 /* USER CODE BEGIN 2 */
+void TOGGLE_GPIO_TEST_PIN(void)
+{
+	LL_GPIO_TogglePin(GPIOB, LL_GPIO_PIN_0);
+}
 
+void SET_GPIO_TEST_PIN(void)
+{
+	LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_0);
+}
+
+void RESET_GPIO_TEST_PIN(void)
+{
+	LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_0);
+}
 /* USER CODE END 2 */
