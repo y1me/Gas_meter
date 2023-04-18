@@ -96,8 +96,8 @@ extern "C" {
  * @{
  */
 #define ADS101X_MODE_MASK     ((1 << 8))
-#define ADS101X_MODE_SSM      ((1 << 8))
-#define ADS101X_MODE_CON      ((0 << 8))
+#define ADS101X_MODE_SSM      ((1 << 0))
+#define ADS101X_MODE_CON      ((0 << 0))
 /** @} */
 
 /**

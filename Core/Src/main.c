@@ -48,7 +48,7 @@
 
 /* USER CODE BEGIN PV */
 /* Buffer used for transmission */
-uint8_t aTxBuffer1[3] = { 0x01 };
+uint8_t aTxBuffer1[3] = { 0x06 };
 
 /* Buffer used for reception */
 uint8_t aRxBuffer1[3]= { 0, 0, 0 };
@@ -102,24 +102,26 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
+
   while (i2c_params_data.event != EV_I2C_INIT_DONE);
   i2c_params_data.bufferTx = aTxBuffer1;
   i2c_params_data.bufferRx = aRxBuffer1;
   i2c_params_data.sizeTx = 1;
   i2c_params_data.sizeRx = 2;
-  i2c_params_data.address = 0x60;
-  i2c_params_data.event = EV_I2C_DMA_TX_RX;
+  i2c_params_data.address = 0x00;
+  i2c_params_data.event = EV_I2C_DMA_TX;
 
   u32 i = 0;
-  while ( i2c_params_data.event != EV_I2C_DMA_RX_DONE || i2c_params_data.currState != ST_I2C_IDLE )
+  while ( i2c_params_data.event != EV_I2C_DMA_TX_DONE || i2c_params_data.currState != ST_I2C_IDLE )
   {
 	  i++;
   }
+  i++;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  i++;
   while (1)
   {
     /* USER CODE END WHILE */

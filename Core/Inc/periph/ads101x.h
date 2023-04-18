@@ -94,16 +94,14 @@ extern I2C_HandleTypeDef hi2c1;
  * Address pin tied to: GND (0x48), Vcc (0x49), SDA (0x50), SCL (0x51)
  */
 #ifndef CONFIG_ADS101X_I2C_ADDRESS
-#define CONFIG_ADS101X_I2C_ADDRESS    (0x49)
+#define CONFIG_ADS101X_I2C_ADDRESS    (0x48)
 #endif
 /** @} */
 
 /* Begin ADS1114 state machine structures */
 typedef enum {
     ST_ADS1114_INIT,
-	ST_ADS1114_LOW_LIMIT,
-	ST_ADS1114_HIGH_LIMIT,
-	ST_ADS1114_WAIT_CONV,
+	ST_ADS1114_READ,
 	ST_ADS1114_CONV,
 	ST_ADS1114_ERROR
 } state_ads1114_t;
@@ -117,8 +115,7 @@ typedef enum {
     EV_ADS1114_INIT_DONE,
 	EV_ADS1114_LOW_LIMIT_DONE,
 	EV_ADS1114_HIGH_LIMIT_DONE,
-	EV_ADS1114_MUX_DONE,
-	EV_ADS1114_CONV_RDY,
+	EV_ADS1114_CONV_START,
 	EV_ADS1114_CONV_DONE,
 	EV_ADS1114_NONE,
 	EV_ADS1114_ERROR_OCCUR
@@ -210,36 +207,7 @@ typedef struct ads101x_alert {
     void *arg;                        /**< alert callback param */
 } ads101x_alert_t;
 
-void conv_ready(void);
-void Running_ADS115_StateMachine_Iteration(void);
-
-/**
- * @brief   Enable alert interrupt
- *
- * Alert settings have no effect on ADS1013 and ADS1113.
- *
- * @param[in] dev   device descriptor
- * @param[in] cb    callback called when the alert fires
- * @param[in] arg   callback argument
- *
- * @return zero on success, non zero on error
- */
-int16_t ads101x_enable_alert(ads101x_alert_t *dev,
-                         ads101x_alert_cb_t cb, void *arg);
-
-/**
- * @brief   Set the alert parameters
- *
- * Alert settings have no effect on ADS1013 and ADS1113.
- *
- * @param[in,out] dev      device descriptor
- * @param[in] low_limit    alert low limit
- * @param[in] high_limit   alert high limit
- *
- * @return zero on success, non zero on error
- */
-int16_t ads101x_set_alert_parameters(const ads101x_alert_t *dev,
-                                 int16_t low_limit, int16_t high_limit);
+void Running_ADS1114_StateMachine_Iteration(void);
 
 #ifdef __cplusplus
 }

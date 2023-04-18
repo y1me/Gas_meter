@@ -83,7 +83,7 @@ static const TIMED_PERIOD timed_task_second[] =
 
 static const TIMED_PERIOD timed_task_ms[] =
 {
-    { 4, NULL },
+    { 200, Running_ADS1114_StateMachine_Iteration },
     { 0, NULL }
 };
 

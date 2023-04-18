@@ -45,13 +45,13 @@
 //#define ADDR (dev->params.addr)
 
 int16_t ads101x_init( ads101x_params_t *,  ads101x_data_t *);
-int16_t ads101x_init_low_limit( ads101x_params_t *,  ads101x_data_t *);
-int16_t ads101x_init_high_limit( ads101x_params_t *,  ads101x_data_t *);
-//int16_t ads101x_rotate_mux_gain(ads101x_params_t *, ads101x_data_t *);
+//int16_t ads101x_init_low_limit( ads101x_params_t *,  ads101x_data_t *);
+//int16_t ads101x_init_high_limit( ads101x_params_t *,  ads101x_data_t *);
+int16_t ads101x_start_conv(ads101x_params_t *, ads101x_data_t *);
 int16_t ads101x_read_raw( ads101x_params_t *, ads101x_data_t *);
 
 
-void ADS115_StateMachine_Iteration(ads101x_params_t *, ads101x_data_t *);
+void ADS1114_StateMachine_Iteration(ads101x_params_t *, ads101x_data_t *);
 /* USER CODE END Private Prototypes */
 
 typedef struct {
@@ -62,10 +62,8 @@ typedef struct {
 static stateFunctionRow_t ADS1114_stateFunction[] = {
         // NAME         // FUNC
 	{ "ST_ADS1114_INIT",		ads101x_init },
-	{ "ST_ADS1114_LOW_LIMIT",	ads101x_init_low_limit },
-	{ "ST_ADS1114_HIGH_LIMIT",	ads101x_init_high_limit },
-	{ "ST_ADS1114_WAIT_CONV",	NULL },
-    { "ST_ADS1114_CONV",		ads101x_read_raw },
+	{ "ST_ADS1114_READ",		ads101x_read_raw },
+    { "ST_ADS1114_CONV",		ads101x_start_conv },
     { "ST_ADS1114_ERROR",		ads101x_init }
 };
 
@@ -77,16 +75,12 @@ typedef struct {
 
 static stateTransMatrixRow_t ADS1114_stateTransMatrix[] = {
     // CURR STATE  v// EVENT           // NEXT STATE
-    { ST_ADS1114_INIT,			EV_ADS1114_INIT_DONE,			ST_ADS1114_LOW_LIMIT  },
-	{ ST_ADS1114_LOW_LIMIT,		EV_ADS1114_LOW_LIMIT_DONE,		ST_ADS1114_HIGH_LIMIT  },
-	{ ST_ADS1114_HIGH_LIMIT,	EV_ADS1114_HIGH_LIMIT_DONE,		ST_ADS1114_WAIT_CONV  },
-    { ST_ADS1114_WAIT_CONV,		EV_ADS1114_CONV_RDY,			ST_ADS1114_CONV },
-    { ST_ADS1114_CONV,			EV_ADS1114_CONV_DONE,			ST_ADS1114_WAIT_CONV },
+	{ ST_ADS1114_INIT,			EV_ADS1114_INIT_DONE,			ST_ADS1114_READ  },
+	{ ST_ADS1114_READ,			EV_ADS1114_CONV_START,			ST_ADS1114_CONV  },
+	{ ST_ADS1114_CONV,			EV_ADS1114_CONV_DONE,			ST_ADS1114_READ  },
     { ST_ADS1114_INIT,  		EV_ADS1114_DO_INIT,				ST_ADS1114_INIT  },
     { ST_ADS1114_INIT,			EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT  },
-    { ST_ADS1114_LOW_LIMIT,		EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT  },
-    { ST_ADS1114_HIGH_LIMIT,	EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT  },
-    { ST_ADS1114_WAIT_CONV,		EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT },
+	{ ST_ADS1114_READ,			EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT  },
     { ST_ADS1114_CONV,			EV_ADS1114_ERROR_OCCUR,			ST_ADS1114_INIT }
 };
 
@@ -110,10 +104,12 @@ int16_t ads101x_init(ads101x_params_t *params, ads101x_data_t *data)
 	data->pointer = data_init[0];
 	data->config[0] = data_init[1];
 	data->config[1] = data_init[2];
+	uint8_t prout = ADS101X_MODE_SSM;
+	prout++;
 	//params->mux_gain = data->config[0];
 	//params->mux_gain &= (ADS101X_MUX_MASK | ADS101X_PGA_MASK);
 
-	ret = write_read_I2C_device_DMA(params->i2cHandle, params->addr, &data->pointer, data->config, 3, 2);
+	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &data->pointer, 3);
 	if (ret == I2C_OK)
 	{
 		params->currState=ST_ADS1114_INIT;
@@ -128,8 +124,7 @@ int16_t ads101x_init(ads101x_params_t *params, ads101x_data_t *data)
 	return ret;
 
 }
-
-
+/*
 int16_t ads101x_init_low_limit(ads101x_params_t *params, ads101x_data_t *data)
 {
 	int16_t ret;
@@ -192,20 +187,7 @@ int16_t ads101x_init_high_limit(ads101x_params_t *params, ads101x_data_t *data)
 	return ret;
 
 }
-
-void conv_ready(void)
-{
-	static int16_t count;
-	if (count > 1)
-	{
-		if (ads101x_params->currState == ST_ADS1114_WAIT_CONV && ads101x_params->event != EV_ADS1114_CONV_RDY)
-		{
-			ads101x_params->event = EV_ADS1114_CONV_RDY;
-		}
-		count = 0;
-	}
-	count++;
-}
+*/
 
 int16_t ads101x_read_raw( ads101x_params_t *params, ads101x_data_t *data)
 {
@@ -221,107 +203,58 @@ int16_t ads101x_read_raw( ads101x_params_t *params, ads101x_data_t *data)
 	ret = write_read_I2C_device_DMA(params->i2cHandle, params->addr, &data->pointer, data->ain0, 1, 2);
 	if (ret == I2C_OK)
 	{
-		params->currState=ST_ADS1114_CONV;
+		params->currState=ST_ADS1114_READ;
 		params->event=EV_ADS1114_NONE;
 	}
 	else
 	{
-		//params->mux_gain = gain_mux_save;
-		params->currState=ST_ADS1114_WAIT_CONV;
-		params->event=EV_ADS1114_NONE;
+		params->currState=ST_ADS1114_INIT;
+		params->event=EV_ADS1114_DO_INIT;
 	}
 	out :
 	return ret;
 }
 
-int16_t ads101x_enable_alert(ads101x_alert_t *dev,
-                         ads101x_alert_cb_t cb, void *arg)
+int16_t ads101x_start_conv( ads101x_params_t *params, ads101x_data_t *data)
 {
-	/*
-    uint8_t regs[2];
+	int16_t ret;
+	if (I2C_status() != I2C_FREE)
+	{
+		ret = ADS101X_I2CBUSY;
+		goto out;
+	}
 
-    if (!gpio_is_valid(dev->params.alert_pin)) {
-        return ADS101X_OK;
-    }
+	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &data->pointer, 3);
+	if (ret == I2C_OK)
+	{
+		params->currState=ST_ADS1114_CONV;
+		params->event=EV_ADS1114_NONE;
+	}
+	else
+	{
+		params->currState=ST_ADS1114_INIT;
+		params->event=EV_ADS1114_DO_INIT;
+	}
+	out :
+	return ret;
 
-    /* Read control register */
-	/*
-    i2c_acquire(DEV);
-    i2c_read_regs(DEV, ADDR, ADS101X_CONF_ADDR, &regs, 2, 0x0);
-	*/
-    /* Enable alert comparator */
-	/*
-    regs[1] &= ~ADS101X_CONF_COMP_DIS;
-    i2c_write_regs(DEV, ADDR, ADS101X_CONF_ADDR, &regs, 2, 0x0);
-
-    i2c_release(DEV);
-	*/
-    /* Enable interrupt */
-	/*
-    dev->arg = arg;
-    dev->cb = cb;
-    gpio_init_int(dev->params.alert_pin, GPIO_IN, GPIO_FALLING, cb, arg);
-*/
-    return ADS101X_OK;
 }
 
-int16_t ads101x_set_alert_parameters(const ads101x_alert_t *dev,
-                                 int16_t low_limit, int16_t high_limit)
+void Running_ADS1114_StateMachine_Iteration(void)
 {
-	/*
-    uint8_t regs[2];
-
-    i2c_acquire(DEV);
-
-    /* Set up low_limit */
-	/*
-    regs[0] = (uint8_t)(low_limit >> 8);
-    regs[1] = (uint8_t)low_limit;
-    i2c_write_regs(DEV, ADDR, ADS101X_LOW_LIMIT_ADDR, &regs, 2, 0x0);
-
-    /* Set up high_limit */
-	/*
-    regs[0] = (uint8_t)(high_limit >> 8);
-    regs[1] = (uint8_t)high_limit;
-    i2c_write_regs(DEV, ADDR, ADS101X_HIGH_LIMIT_ADDR, &regs, 2, 0x0);
-
-    /* Read control register */
-	/*
-    i2c_read_regs(DEV, ADDR, ADS101X_CONF_ADDR, &regs, 2, 0x0);
-
-    /* Set up window mode */
-	/*
-    if (low_limit != 0) {
-        /* Enable window mode */
-	/*
-        regs[1] |= ADS101X_CONF_COMP_MODE_WIND;
-    }
-    else {
-        /* Disable window mode */
-	/*
-        regs[1] &= ~ADS101X_CONF_COMP_MODE_WIND;
-    }
-    i2c_write_regs(DEV, ADDR, ADS101X_CONF_ADDR, &regs, 2, 0x0);
-
-    i2c_release(DEV);
-*/
-    return ADS101X_OK;
+	ADS1114_StateMachine_Iteration(ads101x_params,&ADS1114_config_data);
 }
 
-void Running_ADS115_StateMachine_Iteration(void)
+void ADS1114_StateMachine_Iteration(ads101x_params_t *params, ads101x_data_t *data)
 {
-	ADS115_StateMachine_Iteration(ads101x_params,&ADS1114_config_data);
-}
-
-void ADS115_StateMachine_Iteration(ads101x_params_t *params, ads101x_data_t *data)
-{
-	if (I2C_status() == I2C_OK && params->event == EV_ADS1114_NONE)
+	if (I2C_status() == I2C_FREE && params->event == EV_ADS1114_NONE)
 	{
 		I2C_clear_last_event();
 		if(params->currState == ST_ADS1114_INIT)
 		{
 			params->event = EV_ADS1114_INIT_DONE;
 		}
+		/*
 		if(params->currState == ST_ADS1114_LOW_LIMIT)
 		{
 			params->event = EV_ADS1114_LOW_LIMIT_DONE;
@@ -329,6 +262,11 @@ void ADS115_StateMachine_Iteration(ads101x_params_t *params, ads101x_data_t *dat
 		if(params->currState == ST_ADS1114_HIGH_LIMIT)
 		{
 			params->event = EV_ADS1114_HIGH_LIMIT_DONE;
+		}
+		*/
+		if(params->currState == ST_ADS1114_READ)
+		{
+			params->event = EV_ADS1114_CONV_START;
 		}
 		if(params->currState == ST_ADS1114_CONV)
 		{

@@ -405,7 +405,7 @@ int16_t read_I2C_device_DMA(I2C_HandleTypeDef *i2cHandle, uint16_t addr, uint8_t
 		return ret;
 }
 
-int16_t write_I2C_device_DMA(I2C_HandleTypeDef *i2cHandle, uint16_t addr, uint8_t *buffer, uint16_t size)
+int16_t write_I2C_device_DMA(I2C_HandleTypeDef *i2cHandle, uint16_t addr, uint8_t *txbuffer, uint16_t size)
 {
 	int16_t ret = I2C_OK;
 	if(i2c_params_data.currState != ST_I2C_IDLE )
@@ -414,7 +414,7 @@ int16_t write_I2C_device_DMA(I2C_HandleTypeDef *i2cHandle, uint16_t addr, uint8_
 		goto out;
 	}
 	i2c_params_data.i2cHandle = i2cHandle;
-	i2c_params_data.bufferTx = buffer;
+	i2c_params_data.bufferTx = txbuffer;
 	i2c_params_data.sizeTx = size;
 	i2c_params_data.sizeRx = 1;
 	i2c_params_data.address = addr;
