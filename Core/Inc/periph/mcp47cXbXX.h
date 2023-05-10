@@ -130,15 +130,6 @@ enum {
 };
 
 /**
- * @brief   MCP47CXBXX input data
- */
-typedef struct mcp47cXbXX_data {
-	uint8_t pointer;					/**< data pointer register */
-	uint8_t config[2];					/**< data from/to config register */
-
-} mcp47cXbXX_data_t;
-
-/**
  * @brief   MCP47CXBXX params
  */
 typedef struct mcp47cXbXX_params {
@@ -149,9 +140,15 @@ typedef struct mcp47cXbXX_params {
     uint16_t pdown;					/**< Mux and gain boolean settings */
     uint16_t dac0;					/**< Mux and gain boolean settings */
     uint16_t dac1;					/**< Mux and gain boolean settings */
+    uint16_t current_gain;					/**< Mux and gain boolean settings */
+    uint16_t current_vref;					/**< Mux and gain boolean settings */
+    uint16_t current_pdown;					/**< Mux and gain boolean settings */
+    uint16_t current_dac0;					/**< Mux and gain boolean settings */
+    uint16_t current_dac1;					/**< Mux and gain boolean settings */
 	state_mcp47_t currState;
 	event_mcp47_t event;
 } mcp47cXbXX_params_t;
+
 
 /**
  * @brief   MCP47CXBXX device descriptor

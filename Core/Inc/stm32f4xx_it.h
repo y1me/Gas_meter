@@ -37,6 +37,7 @@
  typedef struct
  {
     u32 interval;      /* How often to call the task */
+    u32 offset;      /* add an offset to un-synchro task */
     void (* const proc)(void);	/* pointer to function returning void */
 
  } TIMED_PERIOD;

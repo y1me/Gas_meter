@@ -77,20 +77,20 @@ static PFV_EXTI pf_ext_int[]=
 
 static const TIMED_PERIOD timed_task_second[] =
 {
-    { 1,  NULL },
-    { 0, NULL }
+    { 1, 0,  NULL },
+    { 0, 0, NULL }
 };
 
 static const TIMED_PERIOD timed_task_ms[] =
 {
-    { 200, Running_ADS1114_StateMachine_Iteration },
-    { 0, NULL }
+    { 200, 0, Running_ADS1114_StateMachine_Iteration },
+    { 0, 0, NULL }
 };
 
 static const TIMED_PERIOD timed_task_10us[] =
 {
-    { 10, Running_I2C_StateMachine_Iteration },
-    { 0, NULL }
+    { 10, 0, Running_I2C_StateMachine_Iteration },
+    { 0, 0, NULL }
 };
 /* USER CODE END 0 */
 
@@ -239,7 +239,7 @@ void SysTick_Handler(void)
 
 		for (const TIMED_PERIOD *ptr = timed_task_second; ptr->interval != 0; ptr++)
 		{
-			if (!(tick_second % ptr->interval) && (ptr->proc != NULL))
+			if (!((tick_second - ptr->offset) % ptr->interval) && (ptr->proc != NULL))
 			{
 				/* Time to call the function */
 				(ptr->proc)();
@@ -254,7 +254,7 @@ void SysTick_Handler(void)
 
 	for (const TIMED_PERIOD *ptr = timed_task_ms; ptr->interval != 0; ptr++)
 	{
-		if (!(tick_ms % ptr->interval) && (ptr->proc != NULL))
+		if (!((tick_ms - ptr->offset) % ptr->interval) && (ptr->proc != NULL))
 		{
 			/* Time to call the function */
 			(ptr->proc)();
@@ -358,7 +358,7 @@ void TIM2_IRQHandler(void)
 
     for (const TIMED_PERIOD *ptr = timed_task_10us; ptr->interval != 0; ptr++)
     {
-  	  if (!(tick_10us % ptr->interval) && (ptr->proc != NULL))
+  	  if (!((tick_10us - ptr->offset)  % ptr->interval) && (ptr->proc != NULL))
   	  {
   		  /* Time to call the function */
   		  (ptr->proc)();

@@ -63,7 +63,12 @@ extern "C" {
 									  .vref       		= MCP47CXBXX_PARAM_VREF,\
 									  .pdown       		= MCP47CXBXX_PARAM_PDOWN,\
 									  .dac0       		= MCP47CXBXX_CONF_DAC_0,\
-									  .dac1       		= MCP47CXBXX_CONF_DAC_1 }
+									  .dac1       		= MCP47CXBXX_CONF_DAC_1,\
+									  .current_gain     = 0xFFFF,\
+									  .current_vref     = 0xFFFF,\
+									  .current_pdown    = 0xFFFF,\
+									  .current_dac0     = 0xFFFF,\
+									  .current_dac1     = 0xFFFF }
 #endif
 
 /**
@@ -73,6 +78,7 @@ static mcp47cXbXX_params_t mcp47cXbXX_params[] =
 {
     MCP47CXBXX_PARAMS
 };
+
 
 #ifdef __cplusplus
 }
