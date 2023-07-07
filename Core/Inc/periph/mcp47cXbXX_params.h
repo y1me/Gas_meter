@@ -64,17 +64,19 @@ extern "C" {
 									  .pdown       		= MCP47CXBXX_PARAM_PDOWN,\
 									  .dac0       		= MCP47CXBXX_CONF_DAC_0,\
 									  .dac1       		= MCP47CXBXX_CONF_DAC_1,\
-									  .current_gain     = 0xFFFF,\
-									  .current_vref     = 0xFFFF,\
-									  .current_pdown    = 0xFFFF,\
-									  .current_dac0     = 0xFFFF,\
-									  .current_dac1     = 0xFFFF }
+									  .loaded_gain     = 0xFFFF,\
+									  .loaded_vref     = 0xFFFF,\
+									  .loaded_pdown    = 0xFFFF,\
+									  .loaded_dac0     = 0xFFFF,\
+									  .loaded_dac1     = 0xFFFF,\
+									  .currState		= ST_MCP47_RESET,\
+									  .event			= EV_MCP47_ERROR_OCCUR}
 #endif
 
 /**
  * @brief   MCP47CXBXX/111x defaults if not defined for a board or application
  */
-static mcp47cXbXX_params_t mcp47cXbXX_params[] =
+static mcp47cXbXX_params_t mcp47cXbXX_param[] =
 {
     MCP47CXBXX_PARAMS
 };

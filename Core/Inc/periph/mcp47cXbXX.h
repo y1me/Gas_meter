@@ -8,24 +8,7 @@
  */
 
 /**
- * @defgroup   drivers_MCP47CXBXX MCP47CXBXX/111x ADC device driver
- * @ingroup    drivers_sensors
- * @ingroup    drivers_saul
- * @brief      I2C Analog-to-Digital Converter device driver
- *
- * This driver works with ADS1013-5 and ADS1113-5.
- *
- * This driver provides @ref drivers_saul capabilities.
- * @{
- *
- * @file
- * @brief      MCP47CXBXX/111x ADC device driver
- *
- * ADC and alert functionality are separated into two devices to
- * prevent wasteful representations on muxed devices.
- *
- * @author     Vincent Dupont <vincent@otakeys.com>
- * @author     Matthew Blue <matthew.blue.neuro@gmail.com>
+ * @defgroup   drivers_MCP47CXBXX DAC device driver
  */
 
 #ifndef MCP47CXBXX_H
@@ -44,7 +27,7 @@ extern "C" {
  */
 extern I2C_HandleTypeDef hi2c1;
 /**
- * @brief   Set MCP47CXBXX/111x default I2C address
+ * @brief   Set MCP47CXBXX default I2C address
  *
  * Default STM32 I2C module
  */
@@ -135,16 +118,18 @@ enum {
 typedef struct mcp47cXbXX_params {
 	I2C_HandleTypeDef* i2cHandle;		/**< i2c device */
     uint8_t addr;						/**< i2c address */
+	uint8_t pointer;					/**< pointer register */
+	uint8_t config[2];
     uint16_t gain;					/**< Mux and gain boolean settings */
     uint16_t vref;					/**< Mux and gain boolean settings */
     uint16_t pdown;					/**< Mux and gain boolean settings */
     uint16_t dac0;					/**< Mux and gain boolean settings */
     uint16_t dac1;					/**< Mux and gain boolean settings */
-    uint16_t current_gain;					/**< Mux and gain boolean settings */
-    uint16_t current_vref;					/**< Mux and gain boolean settings */
-    uint16_t current_pdown;					/**< Mux and gain boolean settings */
-    uint16_t current_dac0;					/**< Mux and gain boolean settings */
-    uint16_t current_dac1;					/**< Mux and gain boolean settings */
+    uint16_t loaded_gain;					/**< Mux and gain boolean settings */
+    uint16_t loaded_vref;					/**< Mux and gain boolean settings */
+    uint16_t loaded_pdown;					/**< Mux and gain boolean settings */
+    uint16_t loaded_dac0;					/**< Mux and gain boolean settings */
+    uint16_t loaded_dac1;					/**< Mux and gain boolean settings */
 	state_mcp47_t currState;
 	event_mcp47_t event;
 } mcp47cXbXX_params_t;

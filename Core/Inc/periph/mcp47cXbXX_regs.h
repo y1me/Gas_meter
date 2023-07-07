@@ -74,11 +74,11 @@ extern "C" {
 #define MCP47CXBXX_CONF_PD_OPEN_0     ((1 << 1) | (1 << 0))
 #define MCP47CXBXX_CONF_PD_100K_0     ((1 << 1) | (0 << 0))
 #define MCP47CXBXX_CONF_PD_1K_0       ((0 << 1) | (1 << 0))
-#define MCP47CXBXX_CONF_PD_OFF_0      ((1 << 1) | (1 << 0))
+#define MCP47CXBXX_CONF_PD_OFF_0      ((0 << 1) | (0 << 0))
 #define MCP47CXBXX_CONF_PD_OPEN_1     ((1 << 3) | (1 << 2))
 #define MCP47CXBXX_CONF_PD_100K_1     ((1 << 3) | (0 << 2))
 #define MCP47CXBXX_CONF_PD_1K_1       ((0 << 3) | (1 << 2))
-#define MCP47CXBXX_CONF_PD_OFF_1      ((1 << 3) | (1 << 2))
+#define MCP47CXBXX_CONF_PD_OFF_1      ((0 << 3) | (0 << 2))
 
 /**
  * @name    MCP47CXBXX Gain settings

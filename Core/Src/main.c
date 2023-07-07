@@ -102,7 +102,7 @@ int main(void)
   /* Initialize interrupts */
   MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
-
+/*
   while (i2c_params_data.event != EV_I2C_INIT_DONE);
   i2c_params_data.bufferTx = aTxBuffer1;
   i2c_params_data.bufferRx = aRxBuffer1;
@@ -117,7 +117,7 @@ int main(void)
 	  i++;
   }
   i++;
-
+*/
   /* USER CODE END 2 */
 
   /* Infinite loop */

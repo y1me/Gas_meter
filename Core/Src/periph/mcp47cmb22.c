@@ -86,7 +86,7 @@ static stateTransMatrixRow_t MCP47CXBXX_stateTransMatrix[] = {
     { ST_MCP47_SET_GAIN,		EV_MCP47_GAIN_DONE,			ST_MCP47_SET_DAC0 },
     { ST_MCP47_SET_DAC0,		EV_MCP47_DAC0_DONE,			ST_MCP47_SET_DAC1 },
     { ST_MCP47_SET_DAC1,  		EV_MCP47_DAC1_DONE,			ST_MCP47_SET_VREF  },
-    { ST_MCP47_RESET,			EV_MCP47_ERROR_OCCUR,		ST_MCP47_IDLE  },
+    { ST_MCP47_RESET,			EV_MCP47_ERROR_OCCUR,		ST_MCP47_RESET  },
 	{ ST_MCP47_SET_VREF,		EV_MCP47_ERROR_OCCUR,		ST_MCP47_IDLE  },
 	{ ST_MCP47_SET_PDOWN,		EV_MCP47_ERROR_OCCUR,		ST_MCP47_IDLE  },
     { ST_MCP47_SET_GAIN,		EV_MCP47_ERROR_OCCUR,		ST_MCP47_IDLE },
@@ -104,32 +104,29 @@ uint8_t mRxBuffer[MCP47CXBXX_RX_DATA_SIZE];
 int16_t mcp47cXbXX_reset(mcp47cXbXX_params_t *params)
 {
 	int16_t ret;
-	params->current_pdown = MCP47CXBXX_CONF_PD_OPEN_0 | MCP47CXBXX_CONF_PD_OPEN_1;
-	params->pdown = params->current_pdown;
-	uint8_t data_init[3] = {params->addr, (params->current_pdown >> 8), params->current_pdown};
-		if (I2C_status() != I2C_FREE)
-		{
-			ret = MCP47CXBXX_I2CBUSY;
-			goto out;
-		}
+	params->pdown = MCP47CXBXX_CONF_PD_OFF_0 | MCP47CXBXX_CONF_PD_OFF_1;
+	params->pointer = MCP47CXBXX_VOL_PD_ADDR << 2;
+	params->config[0] = params->pdown;
+	params->config[1] = (params->pdown >> 8);
+	if (I2C_status() != I2C_FREE)
+	{
+		ret = MCP47CXBXX_I2CBUSY;
+		goto out;
+	}
 
-		ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &data_init[0], 3);
-		if (ret == I2C_OK)
-		{
-			params->currState=ST_MCP47_RESET;
-			params->event=EV_MCP47_NONE;
-		}
-		else
-		{
-			params->currState=ST_MCP47_RESET;
-			params->event=EV_MCP47_NONE;
-		}
+	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
+	if (ret == I2C_OK)
+	{
+		params->currState=ST_MCP47_RESET;
+		params->event=EV_MCP47_NONE;
+	}
+	else
+	{
+		params->currState=ST_MCP47_RESET;
+		params->event=EV_MCP47_NONE;
+	}
 
-
-
-
-
-		out:
+	out:
 	return ret;
 
 }
@@ -139,6 +136,36 @@ int16_t mcp47cXbXX_set_vref(mcp47cXbXX_params_t *params)
 {
 	int16_t ret = 0;
 
+	if (params->vref == params->loaded_vref)
+	{
+		params->currState=ST_MCP47_SET_VREF;
+		params->event=EV_MCP47_NONE;
+		goto out;
+	}
+
+	params->pointer = MCP47CXBXX_VOL_VREF_ADDR << 2;
+	params->config[0] = params->vref;
+	params->config[1] = (params->vref >> 8);
+
+	if (I2C_status() != I2C_FREE)
+	{
+		ret = MCP47CXBXX_I2CBUSY;
+		goto out;
+	}
+
+	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
+	if (ret == I2C_OK)
+	{
+		params->currState=ST_MCP47_SET_VREF;
+		params->event=EV_MCP47_NONE;
+	}
+	else
+	{
+		params->currState=ST_MCP47_RESET;
+		params->event=EV_MCP47_NONE;
+	}
+
+	out:
 	return ret;
 
 }
@@ -147,6 +174,36 @@ int16_t mcp47cXbXX_set_gain(mcp47cXbXX_params_t *params)
 {
 	int16_t ret = 0;
 
+	if (params->gain == params->loaded_gain)
+	{
+		params->currState=ST_MCP47_SET_GAIN;
+		params->event=EV_MCP47_NONE;
+		goto out;
+	}
+
+	params->pointer = MCP47CXBXX_VOL_G_S_ADDR << 2;
+	params->config[0] = params->gain;
+	params->config[1] = (params->gain >> 8);
+
+	if (I2C_status() != I2C_FREE)
+	{
+		ret = MCP47CXBXX_I2CBUSY;
+		goto out;
+	}
+
+	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
+	if (ret == I2C_OK)
+	{
+		params->currState=ST_MCP47_SET_GAIN;
+		params->event=EV_MCP47_NONE;
+	}
+	else
+	{
+		params->currState=ST_MCP47_RESET;
+		params->event=EV_MCP47_NONE;
+	}
+
+	out:
 	return ret;
 
 }
@@ -155,6 +212,36 @@ int16_t mcp47cXbXX_set_powerdown(mcp47cXbXX_params_t *params)
 {
 	int16_t ret = 0;
 
+	if (params->pdown == params->loaded_pdown)
+	{
+		params->currState=ST_MCP47_SET_PDOWN;
+		params->event=EV_MCP47_NONE;
+		goto out;
+	}
+
+	params->pointer = MCP47CXBXX_VOL_PD_ADDR << 2;
+	params->config[0] = params->pdown;
+	params->config[1] = (params->pdown >> 8);
+
+	if (I2C_status() != I2C_FREE)
+	{
+		ret = MCP47CXBXX_I2CBUSY;
+		goto out;
+	}
+
+	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
+	if (ret == I2C_OK)
+	{
+		params->currState=ST_MCP47_SET_PDOWN;
+		params->event=EV_MCP47_NONE;
+	}
+	else
+	{
+		params->currState=ST_MCP47_RESET;
+		params->event=EV_MCP47_NONE;
+	}
+
+	out:
 	return ret;
 
 }
@@ -163,6 +250,36 @@ int16_t mcp47cXbXX_set_dac0(mcp47cXbXX_params_t *params)
 {
 	int16_t ret = 0;
 
+	if (params->dac0 == params->loaded_dac0)
+	{
+		params->currState=ST_MCP47_SET_DAC0;
+		params->event=EV_MCP47_NONE;
+		goto out;
+	}
+
+	params->pointer = MCP47CXBXX_VOL_DAC0_ADDR << 2;
+	params->config[0] = params->dac0;
+	params->config[1] = (params->dac0 >> 8);
+
+	if (I2C_status() != I2C_FREE)
+	{
+		ret = MCP47CXBXX_I2CBUSY;
+		goto out;
+	}
+
+	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
+	if (ret == I2C_OK)
+	{
+		params->currState=ST_MCP47_SET_DAC0;
+		params->event=EV_MCP47_NONE;
+	}
+	else
+	{
+		params->currState=ST_MCP47_RESET;
+		params->event=EV_MCP47_NONE;
+	}
+
+	out:
 	return ret;
 
 }
@@ -171,22 +288,54 @@ int16_t mcp47cXbXX_set_dac1(mcp47cXbXX_params_t *params)
 {
 	int16_t ret = 0;
 
+	if (params->dac1 == params->loaded_dac1)
+	{
+		params->currState=ST_MCP47_SET_DAC1;
+		params->event=EV_MCP47_NONE;
+		goto out;
+	}
+
+	params->pointer = MCP47CXBXX_VOL_DAC1_ADDR << 2;
+	params->config[0] = params->dac1;
+	params->config[1] = (params->dac1 >> 8);
+
+	if (I2C_status() != I2C_FREE)
+	{
+		ret = MCP47CXBXX_I2CBUSY;
+		goto out;
+	}
+
+
+	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
+	if (ret == I2C_OK)
+	{
+		params->currState=ST_MCP47_SET_DAC1;
+		params->event=EV_MCP47_NONE;
+	}
+	else
+	{
+		params->currState=ST_MCP47_RESET;
+		params->event=EV_MCP47_NONE;
+	}
+
+	out:
 	return ret;
 
 }
 
 void Running_MCP47CXBXX_StateMachine_Iteration(void)
 {
-	MCP47CXBXX_StateMachine_Iteration(mcp47cXbXX_params);
+	MCP47CXBXX_StateMachine_Iteration(mcp47cXbXX_param);
 }
 
 void MCP47CXBXX_StateMachine_Iteration(mcp47cXbXX_params_t *params)
 {
-	if (I2C_status() == I2C_OK && params->event == EV_MCP47_NONE)
+	if (I2C_status() == I2C_FREE && params->event == EV_MCP47_NONE)
 	{
 		I2C_clear_last_event();
 		if(params->currState == ST_MCP47_RESET)
 		{
+			params->loaded_pdown = params->pdown;
 			params->event = EV_MCP47_RESET_DONE;
 		}
 		if(params->currState == ST_MCP47_SET_VREF)
