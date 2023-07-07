@@ -64,6 +64,12 @@ extern I2C_HandleTypeDef hi2c1;
 #define MCP47CXBXX_I2C_TIMEOUT    2
 #endif
 /** @} */
+/* MCP address pointer shift
+ */
+#ifndef MCP47CXBXX_ADD_POINTER_SHIFT
+#define MCP47CXBXX_ADD_POINTER_SHIFT    3
+#endif
+/** @} */
 /**
  * Address pin A0, A1 tied to: GND (0x60)
  */

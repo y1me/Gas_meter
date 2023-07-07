@@ -105,9 +105,9 @@ int16_t mcp47cXbXX_reset(mcp47cXbXX_params_t *params)
 {
 	int16_t ret;
 	params->pdown = MCP47CXBXX_CONF_PD_OFF_0 | MCP47CXBXX_CONF_PD_OFF_1;
-	params->pointer = MCP47CXBXX_VOL_PD_ADDR << 2;
-	params->config[0] = params->pdown;
-	params->config[1] = (params->pdown >> 8);
+	params->pointer = MCP47CXBXX_VOL_PD_ADDR << MCP47CXBXX_ADD_POINTER_SHIFT;
+	params->config[1] = params->pdown;
+	params->config[0] = (params->pdown >> 8);
 	if (I2C_status() != I2C_FREE)
 	{
 		ret = MCP47CXBXX_I2CBUSY;
@@ -143,9 +143,9 @@ int16_t mcp47cXbXX_set_vref(mcp47cXbXX_params_t *params)
 		goto out;
 	}
 
-	params->pointer = MCP47CXBXX_VOL_VREF_ADDR << 2;
-	params->config[0] = params->vref;
-	params->config[1] = (params->vref >> 8);
+	params->pointer = MCP47CXBXX_VOL_VREF_ADDR << MCP47CXBXX_ADD_POINTER_SHIFT;
+	params->config[1] = params->vref;
+	params->config[0] = (params->vref >> 8);
 
 	if (I2C_status() != I2C_FREE)
 	{
@@ -181,9 +181,9 @@ int16_t mcp47cXbXX_set_gain(mcp47cXbXX_params_t *params)
 		goto out;
 	}
 
-	params->pointer = MCP47CXBXX_VOL_G_S_ADDR << 2;
-	params->config[0] = params->gain;
-	params->config[1] = (params->gain >> 8);
+	params->pointer = MCP47CXBXX_VOL_G_S_ADDR << MCP47CXBXX_ADD_POINTER_SHIFT;
+	params->config[1] = params->gain;
+	params->config[0] = (params->gain >> 8);
 
 	if (I2C_status() != I2C_FREE)
 	{
@@ -219,9 +219,9 @@ int16_t mcp47cXbXX_set_powerdown(mcp47cXbXX_params_t *params)
 		goto out;
 	}
 
-	params->pointer = MCP47CXBXX_VOL_PD_ADDR << 2;
-	params->config[0] = params->pdown;
-	params->config[1] = (params->pdown >> 8);
+	params->pointer = MCP47CXBXX_VOL_PD_ADDR << MCP47CXBXX_ADD_POINTER_SHIFT;
+	params->config[1] = params->pdown;
+	params->config[0] = (params->pdown >> 8);
 
 	if (I2C_status() != I2C_FREE)
 	{
@@ -257,9 +257,9 @@ int16_t mcp47cXbXX_set_dac0(mcp47cXbXX_params_t *params)
 		goto out;
 	}
 
-	params->pointer = MCP47CXBXX_VOL_DAC0_ADDR << 2;
-	params->config[0] = params->dac0;
-	params->config[1] = (params->dac0 >> 8);
+	params->pointer = MCP47CXBXX_VOL_DAC0_ADDR << MCP47CXBXX_ADD_POINTER_SHIFT;
+	params->config[1] = params->dac0;
+	params->config[0] = (params->dac0 >> 8);
 
 	if (I2C_status() != I2C_FREE)
 	{
@@ -295,9 +295,9 @@ int16_t mcp47cXbXX_set_dac1(mcp47cXbXX_params_t *params)
 		goto out;
 	}
 
-	params->pointer = MCP47CXBXX_VOL_DAC1_ADDR << 2;
-	params->config[0] = params->dac1;
-	params->config[1] = (params->dac1 >> 8);
+	params->pointer = MCP47CXBXX_VOL_DAC1_ADDR << MCP47CXBXX_ADD_POINTER_SHIFT;
+	params->config[1] = params->dac1;
+	params->config[0] = (params->dac1 >> 8);
 
 	if (I2C_status() != I2C_FREE)
 	{
