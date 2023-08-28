@@ -64,11 +64,11 @@ extern "C" {
 									  .pdown       		= MCP47CXBXX_PARAM_PDOWN,\
 									  .dac0       		= MCP47CXBXX_CONF_DAC_0,\
 									  .dac1       		= MCP47CXBXX_CONF_DAC_1,\
-									  .loaded_gain     = 0xFFFF,\
-									  .loaded_vref     = 0xFFFF,\
-									  .loaded_pdown    = 0xFFFF,\
-									  .loaded_dac0     = 0xFFFF,\
-									  .loaded_dac1     = 0xFFFF,\
+									  .loaded_gain      = 0xFFFF,\
+									  .loaded_vref      = 0xFFFF,\
+									  .loaded_pdown     = 0xFFFF,\
+									  .loaded_dac0      = 0xFFFF,\
+									  .loaded_dac1      = 0xFFFF,\
 									  .currState		= ST_MCP47_RESET,\
 									  .event			= EV_MCP47_ERROR_OCCUR}
 #endif

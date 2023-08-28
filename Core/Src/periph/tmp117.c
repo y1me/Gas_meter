@@ -23,12 +23,11 @@
 //#define DEV (dev->params.i2c)
 //#define ADDR (dev->params.addr)
 
+int16_t tmp117_init(tmp117_params_t *);
+int16_t tmp117_get_temperature(tmp117_params_t *);
 int16_t tmp117_reset(tmp117_params_t *);
-int16_t tmp117_set_vref(tmp117_params_t *);
-int16_t tmp117_set_gain(tmp117_params_t *);
-int16_t tmp117_set_powerdown(tmp117_params_t *);
-int16_t tmp117_set_dac0(tmp117_params_t *);
-int16_t tmp117_set_dac1(tmp117_params_t *);
+int16_t tmp117_start_conversion(tmp117_params_t *);
+
 
 
 void TMP117_StateMachine_Iteration(tmp117_params_t *);
@@ -41,52 +40,38 @@ typedef struct {
 
 static stateFunctionRow_t TMP117_stateFunction[] = {
         // NAME         // FUNC
-	{ "ST_TMP117_RESET",		tmp117_reset },
-	{ "ST_TMP117_SET_VREF",	tmp117_set_vref },
-	{ "ST_TMP117_SET_PDOWN",	tmp117_set_powerdown },
-	{ "ST_TMP117_SET_GAIN",	tmp117_set_gain },
-    { "ST_TMP117_SET_DAC0",	tmp117_set_dac0 },
-	{ "ST_TMP117_SET_DAC1",	tmp117_set_dac1 },
-	{ "ST_TMP117_IDLE",		NULL },
+	{ "ST_TMP117_INIT",			tmp117_init },
+	{ "ST_TMP117_CONV",			tmp117_start_conversion },
+	{ "ST_TMP117_READ",			tmp117_get_temperature },
     { "ST_TMP117_ERROR",		tmp117_reset }
 };
 
 typedef struct {
-	state_mcp47_t currState;
-    event_mcp47_t event;
-    state_mcp47_t nextState;
+	state_tmp117_t currState;
+    event_tmp117_t event;
+    state_tmp117_t nextState;
 } stateTransMatrixRow_t;
 
 static stateTransMatrixRow_t TMP117_stateTransMatrix[] = {
-    // CURR STATE  v// EVENT           // NEXT STATE
-    { ST_TMP117_RESET,			EV_TMP117_RESET_DONE,		ST_TMP117_SET_VREF  },
-	{ ST_TMP117_SET_VREF,		EV_TMP117_VREF_DONE,			ST_TMP117_SET_PDOWN  },
-	{ ST_TMP117_SET_PDOWN,		EV_TMP117_PDOWN_DONE,		ST_TMP117_SET_GAIN  },
-    { ST_TMP117_SET_GAIN,		EV_TMP117_GAIN_DONE,			ST_TMP117_SET_DAC0 },
-    { ST_TMP117_SET_DAC0,		EV_TMP117_DAC0_DONE,			ST_TMP117_SET_DAC1 },
-    { ST_TMP117_SET_DAC1,  		EV_TMP117_DAC1_DONE,			ST_TMP117_SET_VREF  },
-    { ST_TMP117_RESET,			EV_TMP117_ERROR_OCCUR,		ST_TMP117_RESET  },
-	{ ST_TMP117_SET_VREF,		EV_TMP117_ERROR_OCCUR,		ST_TMP117_IDLE  },
-	{ ST_TMP117_SET_PDOWN,		EV_TMP117_ERROR_OCCUR,		ST_TMP117_IDLE  },
-    { ST_TMP117_SET_GAIN,		EV_TMP117_ERROR_OCCUR,		ST_TMP117_IDLE },
-    { ST_TMP117_SET_DAC0,		EV_TMP117_ERROR_OCCUR,		ST_TMP117_IDLE },
-    { ST_TMP117_SET_DAC1,  		EV_TMP117_ERROR_OCCUR,		ST_TMP117_IDLE  }
+    // CURR STATE     // EVENT           // NEXT STATE
+    { ST_TMP117_INIT,		EV_TMP117_INIT_DONE,		ST_TMP117_CONV  },
+	{ ST_TMP117_CONV,		EV_TMP117_CONV_DONE,		ST_TMP117_READ  },
+	{ ST_TMP117_READ,		EV_TMP117_TEMP_READED,		ST_TMP117_CONV  },
+    { ST_TMP117_ERROR,  	EV_TMP117_NONE,				ST_TMP117_INIT  },
+    { ST_TMP117_ERROR,  	EV_TMP117_ERROR_OCCUR,		ST_TMP117_ERROR  },
+	{ ST_TMP117_INIT,		EV_TMP117_ERROR_OCCUR,		ST_TMP117_ERROR  },
+	{ ST_TMP117_CONV,		EV_TMP117_ERROR_OCCUR,		ST_TMP117_ERROR  },
+	{ ST_TMP117_READ,		EV_TMP117_ERROR_OCCUR,		ST_TMP117_ERROR  }
 };
-
-/* Buffer used for transmission */
-uint8_t mTxBuffer[TMP117_TX_DATA_SIZE];
-
-/* Buffer used for reception */
-uint8_t mRxBuffer[TMP117_RX_DATA_SIZE];
-
 
 int16_t tmp117_reset(tmp117_params_t *params)
 {
-	int16_t ret;
-	params->pdown = TMP117_CONF_PD_OFF_0 | TMP117_CONF_PD_OFF_1;
-	params->pointer = TMP117_VOL_PD_ADDR << TMP117_ADD_POINTER_SHIFT;
-	params->config[1] = params->pdown;
-	params->config[0] = (params->pdown >> 8);
+	int16_t ret = 0;
+	uint16_t data_init[2] = TMP117_INIT_PARAMS;
+	data_init[1] |= TMP117_CONF_SOFT_RESET;
+	params->pointer = TMP117_CONFIGURATION_ADDR;
+	params->config[1] = data_init[1];
+	params->config[0] = (data_init[1] >> 8);
 	if (I2C_status() != I2C_FREE)
 	{
 		ret = TMP117_I2CBUSY;
@@ -96,13 +81,13 @@ int16_t tmp117_reset(tmp117_params_t *params)
 	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
 	if (ret == I2C_OK)
 	{
-		params->currState=ST_TMP117_RESET;
+		params->currState=ST_TMP117_ERROR;
 		params->event=EV_TMP117_NONE;
 	}
 	else
 	{
-		params->currState=ST_TMP117_RESET;
-		params->event=EV_TMP117_NONE;
+		params->currState=ST_TMP117_ERROR;
+		params->event=EV_TMP117_ERROR_OCCUR;
 	}
 
 	out:
@@ -111,20 +96,14 @@ int16_t tmp117_reset(tmp117_params_t *params)
 }
 
 
-int16_t tmp117_set_vref(tmp117_params_t *params)
+int16_t tmp117_init(tmp117_params_t *params)
 {
 	int16_t ret = 0;
+	uint16_t data_init[2] = TMP117_INIT_PARAMS;
 
-	if (params->vref == params->loaded_vref)
-	{
-		params->currState=ST_TMP117_SET_VREF;
-		params->event=EV_TMP117_NONE;
-		goto out;
-	}
-
-	params->pointer = TMP117_VOL_VREF_ADDR << TMP117_ADD_POINTER_SHIFT;
-	params->config[1] = params->vref;
-	params->config[0] = (params->vref >> 8);
+	params->pointer = TMP117_CONFIGURATION_ADDR;
+	params->config[1] = data_init[1];
+	params->config[0] = (data_init[1] >> 8);
 
 	if (I2C_status() != I2C_FREE)
 	{
@@ -135,13 +114,13 @@ int16_t tmp117_set_vref(tmp117_params_t *params)
 	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
 	if (ret == I2C_OK)
 	{
-		params->currState=ST_TMP117_SET_VREF;
+		params->currState=ST_TMP117_INIT;
 		params->event=EV_TMP117_NONE;
 	}
 	else
 	{
-		params->currState=ST_TMP117_RESET;
-		params->event=EV_TMP117_NONE;
+		params->currState=ST_TMP117_INIT;
+		params->event=EV_TMP117_ERROR_OCCUR;
 	}
 
 	out:
@@ -149,20 +128,12 @@ int16_t tmp117_set_vref(tmp117_params_t *params)
 
 }
 
-int16_t tmp117_set_gain(tmp117_params_t *params)
+int16_t tmp117_start_conversion(tmp117_params_t *params)
 {
 	int16_t ret = 0;
 
-	if (params->gain == params->loaded_gain)
-	{
-		params->currState=ST_TMP117_SET_GAIN;
-		params->event=EV_TMP117_NONE;
-		goto out;
-	}
-
-	params->pointer = TMP117_VOL_G_S_ADDR << TMP117_ADD_POINTER_SHIFT;
-	params->config[1] = params->gain;
-	params->config[0] = (params->gain >> 8);
+	params->pointer = TMP117_CONFIGURATION_ADDR;
+	params->config[1] |= TMP117_CONF_MOD_OS;
 
 	if (I2C_status() != I2C_FREE)
 	{
@@ -173,13 +144,13 @@ int16_t tmp117_set_gain(tmp117_params_t *params)
 	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
 	if (ret == I2C_OK)
 	{
-		params->currState=ST_TMP117_SET_GAIN;
+		params->currState=ST_TMP117_CONV;
 		params->event=EV_TMP117_NONE;
 	}
 	else
 	{
-		params->currState=ST_TMP117_RESET;
-		params->event=EV_TMP117_NONE;
+		params->currState=ST_TMP117_CONV;
+		params->event=EV_TMP117_ERROR_OCCUR;
 	}
 
 	out:
@@ -187,20 +158,11 @@ int16_t tmp117_set_gain(tmp117_params_t *params)
 
 }
 
-int16_t tmp117_set_powerdown(tmp117_params_t *params)
+int16_t tmp117_get_temperature(tmp117_params_t *params)
 {
 	int16_t ret = 0;
 
-	if (params->pdown == params->loaded_pdown)
-	{
-		params->currState=ST_TMP117_SET_PDOWN;
-		params->event=EV_TMP117_NONE;
-		goto out;
-	}
-
-	params->pointer = TMP117_VOL_PD_ADDR << TMP117_ADD_POINTER_SHIFT;
-	params->config[1] = params->pdown;
-	params->config[0] = (params->pdown >> 8);
+	params->pointer = TMP117_TEMP_RESULT_ADDR;
 
 	if (I2C_status() != I2C_FREE)
 	{
@@ -208,93 +170,16 @@ int16_t tmp117_set_powerdown(tmp117_params_t *params)
 		goto out;
 	}
 
-	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
+	ret = write_read_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, params->temperature, 1, 2);
 	if (ret == I2C_OK)
 	{
-		params->currState=ST_TMP117_SET_PDOWN;
+		params->currState = ST_TMP117_READ;
 		params->event=EV_TMP117_NONE;
 	}
 	else
 	{
-		params->currState=ST_TMP117_RESET;
-		params->event=EV_TMP117_NONE;
-	}
-
-	out:
-	return ret;
-
-}
-
-int16_t tmp117_set_dac0(tmp117_params_t *params)
-{
-	int16_t ret = 0;
-
-	if (params->dac0 == params->loaded_dac0)
-	{
-		params->currState=ST_TMP117_SET_DAC0;
-		params->event=EV_TMP117_NONE;
-		goto out;
-	}
-
-	params->pointer = TMP117_VOL_DAC0_ADDR << TMP117_ADD_POINTER_SHIFT;
-	params->config[1] = params->dac0;
-	params->config[0] = (params->dac0 >> 8);
-
-	if (I2C_status() != I2C_FREE)
-	{
-		ret = TMP117_I2CBUSY;
-		goto out;
-	}
-
-	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
-	if (ret == I2C_OK)
-	{
-		params->currState=ST_TMP117_SET_DAC0;
-		params->event=EV_TMP117_NONE;
-	}
-	else
-	{
-		params->currState=ST_TMP117_RESET;
-		params->event=EV_TMP117_NONE;
-	}
-
-	out:
-	return ret;
-
-}
-
-int16_t tmp117_set_dac1(tmp117_params_t *params)
-{
-	int16_t ret = 0;
-
-	if (params->dac1 == params->loaded_dac1)
-	{
-		params->currState=ST_TMP117_SET_DAC1;
-		params->event=EV_TMP117_NONE;
-		goto out;
-	}
-
-	params->pointer = TMP117_VOL_DAC1_ADDR << TMP117_ADD_POINTER_SHIFT;
-	params->config[1] = params->dac1;
-	params->config[0] = (params->dac1 >> 8);
-
-	if (I2C_status() != I2C_FREE)
-	{
-		ret = TMP117_I2CBUSY;
-		goto out;
-	}
-
-
-	ret = write_I2C_device_DMA(params->i2cHandle, params->addr, &params->pointer, 3);
-	if (ret == I2C_OK)
-	{
-		params->currState=ST_TMP117_SET_DAC1;
-		params->event=EV_TMP117_NONE;
-	}
-	else
-	{
-		params->currState=ST_TMP117_RESET;
-		params->event=EV_TMP117_NONE;
+		params->currState = ST_TMP117_READ;
+		params->event=EV_TMP117_ERROR_OCCUR;
 	}
 
 	out:
@@ -304,7 +189,7 @@ int16_t tmp117_set_dac1(tmp117_params_t *params)
 
 void Running_TMP117_StateMachine_Iteration(void)
 {
-	TMP117_StateMachine_Iteration(tmp117_param);
+	TMP117_StateMachine_Iteration(tmp117_params);
 }
 
 void TMP117_StateMachine_Iteration(tmp117_params_t *params)
@@ -312,31 +197,22 @@ void TMP117_StateMachine_Iteration(tmp117_params_t *params)
 	if (I2C_status() == I2C_FREE && params->event == EV_TMP117_NONE)
 	{
 		I2C_clear_last_event();
-		if(params->currState == ST_TMP117_RESET)
+		if(params->currState == ST_TMP117_INIT)
 		{
-			params->loaded_pdown = params->pdown;
-			params->event = EV_TMP117_RESET_DONE;
+			params->event = EV_TMP117_INIT_DONE;
 		}
-		if(params->currState == ST_TMP117_SET_VREF)
+		if(params->currState == ST_TMP117_CONV)
 		{
-			params->event = EV_TMP117_VREF_DONE;
+			params->event = EV_TMP117_CONV_DONE;
 		}
-		if(params->currState == ST_TMP117_SET_PDOWN)
+		if(params->currState == ST_TMP117_READ)
 		{
-			params->event = EV_TMP117_PDOWN_DONE;
+			params->event = EV_TMP117_TEMP_READED;
 		}
-		if(params->currState == ST_TMP117_SET_GAIN)
-		{
-			params->event = EV_TMP117_GAIN_DONE;
-		}
-		if(params->currState == ST_TMP117_SET_DAC0)
-		{
-			params->event = EV_TMP117_DAC0_DONE;
-		}
-		if(params->currState == ST_TMP117_SET_DAC1)
-		{
-			params->event = EV_TMP117_DAC1_DONE;
-		}
+//		if(params->currState == ST_TMP117_ERROR)
+//		{
+//			params->event = EV_TMP117_ERROR_OCCUR;
+//		}
 
 	}
 	else if (I2C_status() == I2C_ERROR || I2C_status() == I2C_ERR_OCCUR)

@@ -27,6 +27,7 @@
 #include "stddef.h"
 #include "periph/ads101x.h"
 #include "periph/mcp47cXbXX.h"
+#include "periph/tmp117.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -78,7 +79,7 @@ static PFV_EXTI pf_ext_int[]=
 
 static const TIMED_PERIOD timed_task_second[] =
 {
-    { 1, 0,  NULL },
+    { 3, 0,  Running_TMP117_StateMachine_Iteration },
     { 0, 0, NULL }
 };
 

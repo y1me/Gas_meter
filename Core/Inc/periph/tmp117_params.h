@@ -27,10 +27,6 @@ extern "C" {
 #ifndef TMP117_PARAM_ADDR
 #define TMP117_PARAM_ADDR       (CONFIG_TMP117_I2C_ADDRESS)
 #endif
-#ifndef TMP117_PARAM_MUX_GAIN
-#define TMP117_PARAM_MUX_GAIN   (TMP117_AIN0_SINGM \
-                                  | TMP117_PGA_FSR_4V096)
-#endif
 
 #ifndef TMP117_PARAM_ALERT_STATUS
 #define TMP117_PARAM_ALERT_STATUS       (TMP117_PARAM_ALERT_FALSE)
@@ -56,13 +52,15 @@ extern "C" {
 #ifndef TMP117_PARAMS
 #define TMP117_PARAMS          { .i2cHandle        = TMP117_PARAM_I2C,\
                                   .addr       		= TMP117_PARAM_ADDR,\
-                                  .mode   		= TMP117_PARAM_MUX_GAIN,\
+                                  .mode   		= TMP117_CONF_MOD_OS,\
                                   .conv = TMP117_CONF_CONV_15_5_MS,\
                                   .average = TMP117_CONF_NO_AVG,\
                                   .T_nA = TMP117_CONF_ALERT_MODE,\
                                   .pol = TMP117_CONF_POL_LOW,\
                                   .DR_Alert = TMP117_CONF_PIN_ALERT,\
-                                  .Soft_Reset = TMP117_CONF_NO_SOFT_RESET }
+                                  .Soft_Reset = TMP117_CONF_NO_SOFT_RESET,\
+								  .currState = ST_TMP117_ERROR,\
+								  .event = EV_TMP117_NONE}
 #endif
 
 #ifndef TMP117_EEPROM_PARAMS
@@ -86,10 +84,10 @@ static tmp117_params_t tmp117_params[] =
 /**
  * @brief   TMP117 alert defaults if not defined for a board or application
  */
-static const tmp117_alert_params_t tmp117_alert_params[] =
-{
-    TMP117_ALERT_PARAMS
-};
+//static const tmp117_alert_params_t tmp117_alert_params[] =
+//{
+//    TMP117_ALERT_PARAMS
+//};
 
 /**
  * @brief   Additional meta information to keep in the SAUL registry

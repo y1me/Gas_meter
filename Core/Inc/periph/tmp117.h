@@ -78,10 +78,10 @@ extern I2C_HandleTypeDef hi2c1;
 /* Begin TMP117 state machine structures */
 typedef enum {
     ST_TMP117_INIT,
-	ST_TMP117_READ,
 	ST_TMP117_CONV,
+	ST_TMP117_READ,
 	ST_TMP117_ERROR
-} state_ads1114_t;
+} state_tmp117_t;
 
 //typedef struct {
 //	state_i2c_t currState;
@@ -90,13 +90,11 @@ typedef enum {
 typedef enum {
 	EV_TMP117_DO_INIT,
     EV_TMP117_INIT_DONE,
-	EV_TMP117_LOW_LIMIT_DONE,
-	EV_TMP117_HIGH_LIMIT_DONE,
-	EV_TMP117_CONV_START,
 	EV_TMP117_CONV_DONE,
+	EV_TMP117_TEMP_READED,
 	EV_TMP117_NONE,
 	EV_TMP117_ERROR_OCCUR
-} event_ads1114_t;
+} event_tmp117_t;
 
 /* End TMP117 state machine structures */
 
@@ -117,7 +115,7 @@ enum {
 typedef struct tmp117_data {
 	uint8_t pointer;					/**< data pointer register */
 	uint8_t config[2];					/**< data from/to config register */
-	uint8_t temperature[2];					/**< data from single-ended input AIN0 */
+	uint8_t temperature[2];				/**< data from temperature register */
 } tmp117_data_t;
 
 /**
@@ -125,16 +123,19 @@ typedef struct tmp117_data {
  */
 typedef struct tmp117_params {
 	I2C_HandleTypeDef* i2cHandle;		/**< i2c device */
-    uint16_t addr;						/**< i2c address */
+    uint8_t addr;						/**< i2c address */
+	uint8_t pointer;					/**< pointer register */
+	uint8_t config[2];
+	uint8_t temperature[2];
     uint16_t mode;					/**< Set conversion mode */
     uint16_t conv;					/**< Set Conversion cycle bit */
     uint16_t average;				/**< Set Conversion averaging modes */
     uint16_t T_nA;					/**< Set Therm/alert mode select */
     uint16_t pol;					/**< Set ALERT pin polarity bit */
     uint16_t DR_Alert;				/**< Set ALERT pin select bit */
-    uint16_t Soft_Reset;				/**< Set Software reset bit */
-	state_ads1114_t currState;
-	event_ads1114_t event;
+    uint16_t Soft_Reset;			/**< Set Software reset bit */
+	state_tmp117_t currState;
+	event_tmp117_t event;
 } tmp117_params_t;
 
 /**
