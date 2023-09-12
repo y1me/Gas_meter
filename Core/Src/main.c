@@ -122,8 +122,8 @@ int main(void)
   }
   i++;
 */
-  LL_ADC_Enable(ADC1);
-  HAL_Delay(10);
+  //LL_ADC_Enable(ADC1);
+  //HAL_Delay(10);
 
   /* USER CODE END 2 */
 
@@ -132,11 +132,11 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  LL_ADC_REG_StartConversionSWStart(ADC1);
-	  HAL_Delay(10);
-	  prout1 = LL_ADC_REG_ReadConversionData32 (ADC1);
-	  HAL_Delay(10);
-	  prout2 = LL_ADC_REG_ReadConversionData32 (ADC1);
+//	  LL_ADC_REG_StartConversionSWStart(ADC1);
+//	  HAL_Delay(10);
+//	  prout1 = LL_ADC_REG_ReadConversionData32 (ADC1);
+//	  HAL_Delay(10);
+//	  prout2 = LL_ADC_REG_ReadConversionData32 (ADC1);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
