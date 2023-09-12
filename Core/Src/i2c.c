@@ -19,7 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "i2c.h"
-
+#include <stdio.h>
 /* USER CODE BEGIN 0 */
 
 I2C_HandleTypeDef hi2c1;
