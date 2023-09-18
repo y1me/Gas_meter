@@ -4,6 +4,8 @@
  *  Created on: Sep 12, 2023
  *      Author: blobby
  */
+#include "periph/glasslcd.h"
+
 
 // count++; reset when count == 4
 void update_lcd(uint8_t count)
@@ -22,7 +24,7 @@ void update_lcd(uint8_t count)
 
 }
 
-void update_com_line(uint32_t mask)
+void update_com_line(const uint32_t mask)
 {
 	uint32_t com1, com2, com3, com4;
 
@@ -49,133 +51,27 @@ void update_com_line(uint32_t mask)
 	com4 = ((mask & COM4_ZERO_MASK) << COM4_ZERO_SHIFT) | ((mask & (COM4_ZERO_MASK >> 1)) << (COM4_ZERO_SHIFT +1)) | ((mask & (COM4_ZERO_MASK >> 2)) << (COM4_ZERO_SHIFT +2)) | ((mask & (COM4_ZERO_MASK >> 3)) << (COM4_ZERO_SHIFT +3));
 
 	LL_GPIO_SetPinMode(GPIOA, com1|com2|com3|com4, LL_GPIO_MODE_OUTPUT);
-	LL_GPIO_SetOutputPin(GPIOA, com1|com2|com3|com4);
-	LL_GPIO_ResetOutputPin
-	// mask output
-	// mask input 0x1E00
-
-
-
-
-	LL_GPIO_SetOutputPin
+	LL_GPIO_ResetOutputPin(GPIOA, com1|com2|com3|com4);
 
 }
 
-if ((output.value > output.size))
-	{
-		output.value = 1;
-	}
+void update_data_line(const uint32_t mask, const lcd_segments_t segments)
+{
+	uint32_t line_ones, line_zeros, active_bit = 1 << mask;
 
-	output.value++;
+	line_ones = (((segments.line0 & active_bit) >> mask) << LINE0_SHIFT) |
+				(((segments.line1 & active_bit) >> mask) << LINE1_SHIFT) |
+				(((segments.line2 & active_bit) >> mask) << LINE2_SHIFT) |
+				(((segments.line3 & active_bit) >> mask) << LINE3_SHIFT) |
+				(((segments.line4 & active_bit) >> mask) << LINE4_SHIFT) |
+				(((segments.line5 & active_bit) >> mask) << LINE5_SHIFT);
+	LL_GPIO_SetOutputPin(GPIOA, line_ones);
 
-	if ((output.value )%4 ==0)
-	{
-		output.deadtime = 1;
-	}
-	else
-	{
-		output.deadtime = 0;
-	}
-
-	if ( output.mask > 0x80000000 || output.mask == 0 )
-	{
-		output.mask = 1;
-	}
-
-	if (output.deadtime)
-	{
-		LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_6 | LL_GPIO_PIN_7 | LL_GPIO_PIN_8 | LL_GPIO_PIN_9, LL_GPIO_MODE_OUTPUT);
-		LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9 | LL_GPIO_PIN_8 | LL_GPIO_PIN_7 | LL_GPIO_PIN_6 | LL_GPIO_PIN_5 | LL_GPIO_PIN_4 | LL_GPIO_PIN_3 | LL_GPIO_PIN_2 | LL_GPIO_PIN_1 | LL_GPIO_PIN_0);
-	}
-	else
-	{
-
-		if (output.mask & mask_com1)
-		{
-			LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_6, LL_GPIO_MODE_OUTPUT);
-			if (output.mask & pattern_com1)
-			{
-				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_6);
-				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_5 | LL_GPIO_PIN_4 | LL_GPIO_PIN_3 | LL_GPIO_PIN_2 | LL_GPIO_PIN_1 | LL_GPIO_PIN_0);
-
-				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_3);
-			}
-			else
-			{
-				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_6);
-				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_5 | LL_GPIO_PIN_5 | LL_GPIO_PIN_3 | LL_GPIO_PIN_2 | LL_GPIO_PIN_1 | LL_GPIO_PIN_0);
-
-				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_3);
-
-			}
-		}
-		else
-		{
-			LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_6, LL_GPIO_MODE_INPUT);
-
-		}
-
-		if (output.mask & mask_com2)
-		{
-			LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_7, LL_GPIO_MODE_OUTPUT);
-			if (output.mask & pattern_com2)
-			{
-				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_7);
-				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_5 | LL_GPIO_PIN_4 | LL_GPIO_PIN_3 | LL_GPIO_PIN_2 | LL_GPIO_PIN_1 | LL_GPIO_PIN_0);
-				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_3 | LL_GPIO_PIN_4 | LL_GPIO_PIN_0);
-			}
-			else
-			{
-				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_7);
-				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_5 | LL_GPIO_PIN_4 | LL_GPIO_PIN_3 | LL_GPIO_PIN_2 | LL_GPIO_PIN_1 | LL_GPIO_PIN_0);
-				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_3 | LL_GPIO_PIN_4 | LL_GPIO_PIN_0);
-			}
-		}
-		else
-		{
-			LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_7, LL_GPIO_MODE_INPUT);
-
-		}
-
-		if (output.mask & mask_com3)
-		{
-			LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_8, LL_GPIO_MODE_OUTPUT);
-			if (output.mask & pattern_com3)
-			{
-				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_8);
-				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_5 | LL_GPIO_PIN_4 | LL_GPIO_PIN_3 | LL_GPIO_PIN_2 | LL_GPIO_PIN_1 | LL_GPIO_PIN_0);
-			}
-			else
-			{
-				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_8);
-				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_5 | LL_GPIO_PIN_4 | LL_GPIO_PIN_3 | LL_GPIO_PIN_2 | LL_GPIO_PIN_1 | LL_GPIO_PIN_0);
-			}
-		}
-		else
-		{
-			LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_8, LL_GPIO_MODE_INPUT);
-
-		}
-
-		if (output.mask & mask_com4)
-		{
-			LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_9, LL_GPIO_MODE_OUTPUT);
-			if (output.mask & pattern_com4)
-			{
-				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_9);
-				LL_GPIO_SetOutputPin(GPIOA, LL_GPIO_PIN_5 | LL_GPIO_PIN_4 | LL_GPIO_PIN_3 | LL_GPIO_PIN_2 | LL_GPIO_PIN_1 | LL_GPIO_PIN_0);
-			}
-			else
-			{
-				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_9);
-				LL_GPIO_ResetOutputPin(GPIOA, LL_GPIO_PIN_5 | LL_GPIO_PIN_4 | LL_GPIO_PIN_3 | LL_GPIO_PIN_2 | LL_GPIO_PIN_1 | LL_GPIO_PIN_0);
-			}
-		}
-		else
-		{
-			LL_GPIO_SetPinMode (GPIOA, LL_GPIO_PIN_9, LL_GPIO_MODE_INPUT);
-
-		}
-	}
-
-	output.mask = output.mask << 1;
+	line_zeros = (((~segments.line0 & active_bit) >> mask) << LINE0_SHIFT) |
+				(((~segments.line1 & active_bit) >> mask) << LINE1_SHIFT) |
+				(((~segments.line2 & active_bit) >> mask) << LINE2_SHIFT) |
+				(((~segments.line3 & active_bit) >> mask) << LINE3_SHIFT) |
+				(((~segments.line4 & active_bit) >> mask) << LINE4_SHIFT) |
+				(((~segments.line5 & active_bit) >> mask) << LINE5_SHIFT);
+	LL_GPIO_ResetOutputPin(GPIOA, line_zeros);
+}

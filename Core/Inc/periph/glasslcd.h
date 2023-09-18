@@ -8,6 +8,8 @@
 #ifndef INC_PERIPH_GLASSLCD_H_
 #define INC_PERIPH_GLASSLCD_H_
 
+#include "main.h"
+
 #define COM_PORT_MASK 0x00001E00
 
 #define COM1_ONE_SHIFT 		22
@@ -29,10 +31,40 @@
 #define COM4_ONE_MASK 		0x00000080
 #define COM4_ZERO_SHIFT 	9
 #define COM4_ZERO_MASK 		0x00000008
-//typedef struct ads101x_alert_params {
-//    uint32_t alert_pin_status;			/**< alert pin (GPIO_UNDEF if not connected) */
-//    int16_t low_limit;					/**< alert low value */
-//    int16_t high_limit;					/**< alert high value */
-//} ads101x_alert_params_t;
 
+#define LINE_DEFAULT_MASK 	0xF0F0F0F0
+
+#define LINE_STATE_RESET 	0xF0F0F0F0
+
+#define LINE0_SHIFT 		0
+#define LINE1_SHIFT 		1
+#define LINE2_SHIFT 		2
+#define LINE3_SHIFT 		3
+#define LINE4_SHIFT 		4
+#define LINE5_SHIFT 		5
+
+typedef struct lcd_segments {
+    uint32_t line0;			/* lcd line segment 0 */
+    uint32_t line1;			/* lcd line segment 1 */
+    uint32_t line2;			/* lcd line segment 2 */
+    uint32_t line3;			/* lcd line segment 3 */
+    uint32_t line4;			/* lcd line segment 4 */
+    uint32_t line5;			/* lcd line segment 5 */
+} lcd_segments_t;
+
+
+/**
+ * @brief   lcd segments defaults
+ */
+static lcd_segments_t lcd_segments_value[] =
+{
+    {
+    .line0 = LINE_STATE_RESET,\
+	.line1 = LINE_STATE_RESET,\
+	.line2 = LINE_STATE_RESET,\
+	.line3 = LINE_STATE_RESET,\
+	.line4 = LINE_STATE_RESET,\
+	.line5 = LINE_STATE_RESET
+    }
+};
 #endif /* INC_PERIPH_GLASSLCD_H_ */
