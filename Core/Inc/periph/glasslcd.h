@@ -36,6 +36,8 @@
 
 #define LINE_STATE_RESET 	0xF0F0F0F0
 
+#define ALL_LCD_LINE		0x63F
+
 #define LINE0_SHIFT 		0
 #define LINE1_SHIFT 		1
 #define LINE2_SHIFT 		2
@@ -67,4 +69,10 @@ static lcd_segments_t lcd_segments_value[] =
 	.line5 = LINE_STATE_RESET
     }
 };
+
+static uint32_t count_32;
+
+void Running_glasslcd_StateMachine_Iteration(void);
+
+
 #endif /* INC_PERIPH_GLASSLCD_H_ */

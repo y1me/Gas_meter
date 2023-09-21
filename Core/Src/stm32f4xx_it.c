@@ -28,6 +28,7 @@
 #include "periph/ads101x.h"
 #include "periph/mcp47cXbXX.h"
 #include "periph/tmp117.h"
+#include "periph/glasslcd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -86,7 +87,8 @@ static const TIMED_PERIOD timed_task_second[] =
 static const TIMED_PERIOD timed_task_ms[] =
 {
     //{ 200, 0, Running_ADS1114_StateMachine_Iteration },
-    {500, 0, Running_MCP47CXBXX_StateMachine_Iteration }
+    {500, 0, Running_MCP47CXBXX_StateMachine_Iteration },
+	{ 2, 0,  Running_glasslcd_StateMachine_Iteration }
 };
 
 static const TIMED_PERIOD timed_task_10us[] =

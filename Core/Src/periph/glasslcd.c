@@ -6,11 +6,26 @@
  */
 #include "periph/glasslcd.h"
 
+void update_lcd(uint8_t );
+void update_com_line(const uint32_t );
+void update_data_line(const uint32_t , const lcd_segments_t *);
+void set_deadtime_state(void);
 
+
+
+void Running_glasslcd_StateMachine_Iteration(void)
+{
+	update_lcd(count_32);
+	count_32++;
+	if (count_32 >= 32)
+	{
+		count_32 = 0;
+	}
+}
 // count++; reset when count == 4
 void update_lcd(uint8_t count)
 {
-	mod4 = count % 4;
+	uint8_t mod4 = count % 4;
 
 	if (mod4 == 3)
 	{
@@ -19,9 +34,15 @@ void update_lcd(uint8_t count)
 	else
 	{
 		update_com_line(1 << count);
-		update_data_line(1 << count);
+		update_data_line(1 << count, lcd_segments_value);
 	}
 
+}
+
+void set_deadtime_state(void)
+{
+	LL_GPIO_SetPinMode(GPIOA, ALL_LCD_LINE, LL_GPIO_MODE_OUTPUT);
+	LL_GPIO_ResetOutputPin(GPIOA, ALL_LCD_LINE);
 }
 
 void update_com_line(const uint32_t mask)
@@ -55,23 +76,23 @@ void update_com_line(const uint32_t mask)
 
 }
 
-void update_data_line(const uint32_t mask, const lcd_segments_t segments)
+void update_data_line(const uint32_t mask, const lcd_segments_t *segments)
 {
 	uint32_t line_ones, line_zeros, active_bit = 1 << mask;
 
-	line_ones = (((segments.line0 & active_bit) >> mask) << LINE0_SHIFT) |
-				(((segments.line1 & active_bit) >> mask) << LINE1_SHIFT) |
-				(((segments.line2 & active_bit) >> mask) << LINE2_SHIFT) |
-				(((segments.line3 & active_bit) >> mask) << LINE3_SHIFT) |
-				(((segments.line4 & active_bit) >> mask) << LINE4_SHIFT) |
-				(((segments.line5 & active_bit) >> mask) << LINE5_SHIFT);
+	line_ones = (((segments->line0 & active_bit) >> mask) << LINE0_SHIFT) |
+				(((segments->line1 & active_bit) >> mask) << LINE1_SHIFT) |
+				(((segments->line2 & active_bit) >> mask) << LINE2_SHIFT) |
+				(((segments->line3 & active_bit) >> mask) << LINE3_SHIFT) |
+				(((segments->line4 & active_bit) >> mask) << LINE4_SHIFT) |
+				(((segments->line5 & active_bit) >> mask) << LINE5_SHIFT);
 	LL_GPIO_SetOutputPin(GPIOA, line_ones);
 
-	line_zeros = (((~segments.line0 & active_bit) >> mask) << LINE0_SHIFT) |
-				(((~segments.line1 & active_bit) >> mask) << LINE1_SHIFT) |
-				(((~segments.line2 & active_bit) >> mask) << LINE2_SHIFT) |
-				(((~segments.line3 & active_bit) >> mask) << LINE3_SHIFT) |
-				(((~segments.line4 & active_bit) >> mask) << LINE4_SHIFT) |
-				(((~segments.line5 & active_bit) >> mask) << LINE5_SHIFT);
+	line_zeros = (((~segments->line0 & active_bit) >> mask) << LINE0_SHIFT) |
+				 (((~segments->line1 & active_bit) >> mask) << LINE1_SHIFT) |
+				 (((~segments->line2 & active_bit) >> mask) << LINE2_SHIFT) |
+				 (((~segments->line3 & active_bit) >> mask) << LINE3_SHIFT) |
+				 (((~segments->line4 & active_bit) >> mask) << LINE4_SHIFT) |
+				 (((~segments->line5 & active_bit) >> mask) << LINE5_SHIFT);
 	LL_GPIO_ResetOutputPin(GPIOA, line_zeros);
 }
